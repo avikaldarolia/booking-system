@@ -1,15 +1,18 @@
 {
 	"compilerOptions": {
+		"target": "ES2016",
 		"module": "ESNext",
-		"target": "ESNext",
 		"strict": true,
 		"esModuleInterop": true,
 		"skipLibCheck": true,
 		"forceConsistentCasingInFileNames": true,
 		"outDir": "./dist",
+		"strictPropertyInitialization": false,
 		"moduleResolution": "node",
-		"typeRoots": ["./node_modules/@types", "./lib/types/express.d.ts"]
+		"typeRoots": ["./node_modules/@types", "./lib/types/express.d.ts"],
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true
 	},
-	"include": ["*.ts", "./lib/types/express.d.ts"],
+	"include": ["*.ts", "./**/*.ts", "./lib/types/express.d.ts"],
 	"exclude": ["node_modules"]
 }
