@@ -15,10 +15,10 @@ export class Employee extends BaseEntity {
 	@PrimaryGeneratedColumn("uuid")
 	id: string;
 
-	@Column()
+	@Column({ type: "varchar" })
 	name: string;
 
-	@Column()
+	@Column({ type: "text" })
 	email: string;
 
 	@Column({

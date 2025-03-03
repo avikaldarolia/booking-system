@@ -8,7 +8,7 @@ export class Store extends BaseEntity {
 	@PrimaryGeneratedColumn("uuid")
 	id: string;
 
-	@Column()
+	@Column({ type: "text" })
 	name: string;
 
 	@Column("decimal")
