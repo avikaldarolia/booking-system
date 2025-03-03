@@ -1,0 +1,15 @@
+{
+	"compilerOptions": {
+		"module": "ESNext",
+		"target": "ESNext",
+		"strict": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"outDir": "./dist",
+		"moduleResolution": "node",
+		"typeRoots": ["./node_modules/@types", "./lib/types/express.d.ts"]
+	},
+	"include": ["*.ts", "./lib/types/express.d.ts"],
+	"exclude": ["node_modules"]
+}

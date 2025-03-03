@@ -1,0 +1,27 @@
+{
+	"name": "booking-system",
+	"version": "1.0.0",
+	"description": "Backend for Booking system",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "node dist/index.js",
+		"dev": "nodemon --exec tsx index.ts"
+	},
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"axios": "^1.8.1",
+		"express": "^4.21.2",
+		"nodemon": "^3.1.9",
+		"pg": "^8.13.3",
+		"ts-node": "^10.9.2",
+		"tsx": "^4.19.3",
+		"typeorm": "^0.3.20",
+		"typescript": "^5.8.2"
+	},
+	"devDependencies": {
+		"@types/express": "^5.0.0",
+		"@types/node": "^22.13.8"
+	}
+}
