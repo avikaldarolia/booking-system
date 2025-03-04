@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, RelationId } from "typeorm";
 import { Store } from "./Store";
 import { BaseEntity } from "../types/base-entity";
 
@@ -7,11 +7,15 @@ export class WeeklyStats extends BaseEntity {
 	@PrimaryGeneratedColumn("uuid")
 	id: string;
 
+	@RelationId((weeklyStats: WeeklyStats) => weeklyStats.store)
+	employeeId: string;
+
 	@ManyToOne(() => Store, (store) => store.weeklyBudget)
 	store: Store;
 
 	@Column("date")
 	weekStartDate: Date;
+
 	@Column("date")
 	weekEndDate: Date;
 

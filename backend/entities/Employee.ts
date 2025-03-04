@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, RelationId } from "typeorm";
 import { Store } from "./Store";
 import { Availability } from "./Availability";
 import { Shift } from "./Shift";
@@ -36,6 +36,9 @@ export class Employee extends BaseEntity {
 
 	@Column("decimal")
 	hourlyRate: number;
+
+	@RelationId((employee: Employee) => employee.store)
+	storeId: string;
 
 	@ManyToOne(() => Store, (store) => store.employees)
 	store: Store;

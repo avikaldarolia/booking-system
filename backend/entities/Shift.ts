@@ -6,6 +6,7 @@ import {
 	CreateDateColumn,
 	UpdateDateColumn,
 	BaseEntity,
+	RelationId,
 } from "typeorm";
 import { Employee } from "./Employee";
 import { Store } from "./Store";
@@ -15,8 +16,14 @@ export class Shift extends BaseEntity {
 	@PrimaryGeneratedColumn("uuid")
 	id: string;
 
+	@RelationId((shift: Shift) => shift.employee)
+	employeeId: string;
+
 	@ManyToOne(() => Employee, (employee) => employee.shifts)
 	employee: Employee;
+
+	@RelationId((shift: Shift) => shift.store)
+	storeId: string;
 
 	@ManyToOne(() => Store)
 	store: Store;

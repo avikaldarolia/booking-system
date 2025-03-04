@@ -1,10 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, BaseEntity } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, BaseEntity, RelationId } from "typeorm";
 import { Employee } from "./Employee";
 
 @Entity()
 export class Availability extends BaseEntity {
 	@PrimaryGeneratedColumn("uuid")
 	id: string;
+
+	@RelationId((availability: Availability) => availability.employee)
+	employeeId: string;
 
 	@ManyToOne(() => Employee, (employee) => employee.availabilities)
 	employee: Employee;
