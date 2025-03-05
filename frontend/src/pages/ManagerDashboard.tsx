@@ -1,6 +1,7 @@
 import { endOfWeek, format, startOfWeek } from "date-fns";
 import { BarChart2, Calendar, Clock, DollarSign, Users } from "lucide-react";
 import { useEffect, useState } from "react";
+import axios from "axios";
 
 const ManagerDashboard = () => {
 	const [stats, setStats] = useState({
@@ -12,62 +13,54 @@ const ManagerDashboard = () => {
 		shiftsScheduled: 0,
 	});
 
-	const [loading, setLoading] = useState(false);
+	const [loading, setLoading] = useState(true);
 
-	console.log(import.meta.env.VITE_STORE_ID);
+	// console.log(import.meta.env.VITE_STORE_ID);
+	const storeId = import.meta.env.VITE_STORE_ID;
 
-	// useEffect(() => {
-	// 	const fetchDashboardData = async () => {
-	// 		try {
-	// 			// For demo purposes, we'll use a fixed store ID
-	// 			const storeId = "1";
-	// 			const currentDate = new Date();
+	useEffect(() => {
+		const fetchDashboardData = async () => {
+			try {
+				// For demo purposes, we'll use a fixed store ID
+				// const storeId = "1";
+				const currentDate = new Date();
 
-	// 			// Fetch store data
-	// 			const storeResponse = await axios.get(`/api/stores/${storeId}`);
+				// Fetch store data
+				// const storeResponse = await axios.get(`stores/${storeId}`);
 
-	// 			// Fetch employees count
-	// 			const employeesResponse = await axios.get(`/api/employees?storeId=${storeId}`);
+				// Fetch employees count
+				const employeesResponse = await axios.get(`employees?storeId=${storeId}`);
 
-	// 			// Fetch weekly stats
-	// 			const weeklyStatsResponse = await axios.get(
-	// 				`/api/weekly-stats?storeId=${storeId}&date=${currentDate.toISOString()}`
-	// 			);
+				console.log("employeesResponse", employeesResponse);
 
-	// 			// Fetch shifts for the current week
-	// 			const weekStart = format(startOfWeek(currentDate), "yyyy-MM-dd");
-	// 			const weekEnd = format(endOfWeek(currentDate), "yyyy-MM-dd");
-	// 			const shiftsResponse = await axios.get(
-	// 				`/api/shifts?storeId=${storeId}&startDate=${weekStart}&endDate=${weekEnd}`
-	// 			);
+				// Fetch weekly stats
+				const weeklyStatsResponse = await axios.get(
+					`weekly-stats?storeId=${storeId}&date=${currentDate.toISOString()}`
+				);
 
-	// 			setStats({
-	// 				totalEmployees: employeesResponse.data.length,
-	// 				weeklyBudget: weeklyStatsResponse.data.budgetAllocated,
-	// 				budgetSpent: weeklyStatsResponse.data.totalCost,
-	// 				budgetRemaining: weeklyStatsResponse.data.budgetRemaining,
-	// 				totalHours: weeklyStatsResponse.data.totalHours,
-	// 				shiftsScheduled: shiftsResponse.data.length,
-	// 			});
+				// Fetch shifts for the current week
+				const weekStart = format(startOfWeek(currentDate), "yyyy-MM-dd");
+				const weekEnd = format(endOfWeek(currentDate), "yyyy-MM-dd");
+				const shiftsResponse = await axios.get(`shifts?storeId=${storeId}&startDate=${weekStart}&endDate=${weekEnd}`);
 
-	// 			setLoading(false);
-	// 		} catch (error) {
-	// 			console.error("Error fetching dashboard data:", error);
-	// 			// For demo purposes, set mock data
-	// 			setStats({
-	// 				totalEmployees: 12,
-	// 				weeklyBudget: 5000,
-	// 				budgetSpent: 3200,
-	// 				budgetRemaining: 1800,
-	// 				totalHours: 160,
-	// 				shiftsScheduled: 24,
-	// 			});
-	// 			setLoading(false);
-	// 		}
-	// 	};
+				setStats({
+					totalEmployees: employeesResponse.data.length,
+					weeklyBudget: weeklyStatsResponse.data.budgetAllocated,
+					budgetSpent: weeklyStatsResponse.data.totalCost,
+					budgetRemaining: weeklyStatsResponse.data.budgetRemaining,
+					totalHours: weeklyStatsResponse.data.totalHours,
+					shiftsScheduled: shiftsResponse.data.length,
+				});
 
-	// 	fetchDashboardData();
-	// }, []);
+				setLoading(false);
+			} catch (error) {
+				console.error("Error fetching dashboard data:", error);
+				setLoading(false);
+			}
+		};
+
+		fetchDashboardData();
+	}, [storeId]);
 
 	const currentWeek = () => {
 		const now = new Date();

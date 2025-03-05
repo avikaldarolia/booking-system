@@ -6,6 +6,10 @@ import dotenv from "dotenv";
 import { AppDataSource } from "./data-source";
 import employeeRoutes from "./routes/employee.routes";
 import storeRoutes from "./routes/store.routes";
+import availabilityRoutes from "./routes/availability.routes";
+import shiftRoutes from "./routes/shift.routes";
+import weeklyStatsRoutes from "./routes/weeklyStats.routes";
+import googleCalendarRoutes from "./routes/googleCalendar.routes";
 
 dotenv.config();
 
@@ -17,8 +21,12 @@ app.disable("x-powered-by");
 
 const PORT = process.env.PORT || 8000;
 
-app.use("/api/store", storeRoutes);
-app.use("/api/employee", employeeRoutes);
+app.use("/api/stores", storeRoutes);
+app.use("/api/employees", employeeRoutes);
+app.use("/api/availability", availabilityRoutes);
+app.use("/api/shifts", shiftRoutes);
+app.use("/api/weekly-stats", weeklyStatsRoutes);
+app.use("/api/google-calendar", googleCalendarRoutes);
 
 AppDataSource.initialize()
 	.then(() => {
