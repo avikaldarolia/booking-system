@@ -1,6 +1,7 @@
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
+import ManagerDashboard from "./pages/ManagerDashboard";
 
 function App() {
 	return (
@@ -10,7 +11,9 @@ function App() {
 				<div className="flex-1 flex flex-col overflow-hidden">
 					<Header />
 					<main className="flex-1 overflow-y-auto p-4">
-						<Routes>{/* <Route path="/" element={} /> */}</Routes>
+						<Routes>
+							<Route path="/manager" element={<ManagerDashboard />} />
+						</Routes>
 					</main>
 				</div>
 			</div>
