@@ -2,6 +2,7 @@ import { endOfWeek, format, startOfWeek } from "date-fns";
 import { BarChart2, Calendar, Clock, DollarSign, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import Spinner from "../components/Spinner";
 
 const ManagerDashboard = () => {
 	const [stats, setStats] = useState({
@@ -21,12 +22,7 @@ const ManagerDashboard = () => {
 	useEffect(() => {
 		const fetchDashboardData = async () => {
 			try {
-				// For demo purposes, we'll use a fixed store ID
-				// const storeId = "1";
 				const currentDate = new Date();
-
-				// Fetch store data
-				// const storeResponse = await axios.get(`stores/${storeId}`);
 
 				// Fetch employees count
 				const employeesResponse = await axios.get(`employees?storeId=${storeId}`);
@@ -70,11 +66,7 @@ const ManagerDashboard = () => {
 	};
 
 	if (loading) {
-		return (
-			<div className="flex justify-center items-center h-full">
-				<div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-			</div>
-		);
+		return <Spinner />;
 	}
 
 	return (
