@@ -1,15 +1,69 @@
 import { google } from "googleapis";
-import { format } from "date-fns";
 import { Shift } from "../../entities/Shift";
+import { GetStoreById } from "../../services/store.service";
+import axios from "axios";
 
 // Initialize Google Calendar API
 const auth = new google.auth.JWT({
 	email: process.env.GOOGLE_CLIENT_EMAIL,
-	key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+	key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n") || "",
 	scopes: ["https://www.googleapis.com/auth/calendar"],
 });
 
 const calendar = google.calendar({ version: "v3", auth });
+
+const calendarId = process.env.GOOGLE_CALENDAR_ID;
+
+/**
+ * Insert the new calendar to the service account. (Init setup)
+ * @param storeId
+ */
+export const insertIntoServiceAccount = async (storeId: string) => {
+	try {
+		// Get the store
+		const store = await GetStoreById(storeId);
+		if (!store) {
+			throw new Error(`Cannot find store with id ${storeId}`);
+		}
+
+		store.calendarId = calendarId ?? "";
+
+		await axios.post("https://www.googleapis.com/calendar/v3/users/me/calendarList", {
+			id: calendarId,
+		});
+
+		return "Calendar added succesfully.";
+	} catch (error) {
+		console.log("Error inserting calendar.");
+		return "Error";
+	}
+};
+
+/**
+ * Just checks if the calendar with the calendar Id is present in the service account or not.
+ * @param storeId
+ * @returns
+ */
+export const calendarHeartbeat = async (storeId: string) => {
+	try {
+		const calendarList = await calendar.calendarList.list();
+
+		console.log("CalendarList: ", calendarList);
+
+		if (!calendarList.data.items) {
+			throw new Error("Error fetching calendars.");
+		}
+
+		console.log(calendarList);
+
+		const isConnected = calendarList.data.items?.some((cal) => cal.id === calendarId);
+
+		return { googleCalendarConnected: isConnected };
+	} catch (error) {
+		console.error("Error checking Google Calendar connection:", error);
+		return { googleCalendarConnected: false };
+	}
+};
 
 export const syncShiftWithGoogleCalendar = async (shift: Shift): Promise<string | null> => {
 	try {

@@ -29,12 +29,14 @@ const Settings = () => {
 	useEffect(() => {
 		const fetchSettings = async () => {
 			try {
-				const response = await axios.get(`stores/${storeId}`);
-				setStoreSettings(response.data);
+				const settingsResponse = await axios.get(`stores/${storeId}`);
+				setStoreSettings(settingsResponse.data);
 
 				// Check if Google Calendar is connected
-				// This would be a separate endpoint in a real app
-				setGoogleCalendarConnected(true);
+				const calendarResponse = await axios.get(`google-calendar/heartbeat`);
+				console.log("calender Response", calendarResponse);
+
+				setGoogleCalendarConnected(calendarResponse.data.googleCalendarConnected);
 
 				setLoading(false);
 			} catch (error) {

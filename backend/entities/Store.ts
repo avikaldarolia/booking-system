@@ -25,4 +25,7 @@ export class Store extends BaseEntity {
 
 	@OneToMany(() => WeeklyStats, (weeklyStats) => weeklyStats.store)
 	weeklyStats: WeeklyStats[];
+
+	@Column("text", { nullable: true })
+	calendarId: string;
 }
