@@ -54,6 +54,8 @@ const Schedule = () => {
 		endTime: "17:00",
 		note: "",
 	});
+	const [errors, setErrors] = useState<{ [key: string]: string }>({});
+	const [submissionError, setSubmissionError] = useState<string | null>(null);
 
 	const weekStart = startOfWeek(currentDate);
 	const weekEnd = endOfWeek(currentDate);
@@ -95,36 +97,63 @@ const Schedule = () => {
 		setCurrentDate(addWeeks(currentDate, 1));
 	};
 
+	const validateForm = () => {
+		const newErrors: { [key: string]: string } = {};
+
+		if (!newShift.employeeId) newErrors.employeeId = "Please select an employee";
+		if (!newShift.date) newErrors.date = "Please select a date";
+		if (!newShift.startTime) newErrors.startTime = "Please set a start time";
+		if (!newShift.endTime) newErrors.endTime = "Please set an end time";
+		if (newShift.startTime >= newShift.endTime) {
+			newErrors.endTime = "End time must be after start time";
+		}
+
+		if (newShift.date < new Date().toISOString().split("T")[0]) {
+			newErrors.date = "Cannot schedule shifts in the past. Please select a future date.";
+		}
+		setErrors(newErrors);
+		return Object.keys(newErrors).length === 0;
+	};
+
 	const handleAddShift = async () => {
+		if (!validateForm()) return;
+
+		setSubmissionError(null);
 		try {
+			const shiftDateTime = new Date(`${newShift.date}T${newShift.startTime}:00`).toISOString();
 			const response = await axios.post("shifts", {
 				...newShift,
 				storeId,
 				isPublished: true,
-				date: new Date(`${newShift.date}T${newShift.startTime}:00`).toISOString(),
+				date: shiftDateTime,
 			});
 
 			setShifts([...shifts, response.data]);
 			setShowAddShift(false);
 			setNewShift({
 				employeeId: "",
-				date: new Date().toISOString(),
+				date: new Date().toISOString().split("T")[0],
 				startTime: "09:00",
 				endTime: "17:00",
 				note: "",
 			});
 
 			// Refresh weekly stats
-			// const weeklyStatsResponse = await axios.get(
-			// 	`weekly-stats?storeId=${storeId}&date=${format(currentDate, "yyyy-MM-dd")}`
-			// );
-			// setWeeklyStats(weeklyStatsResponse.data);
+			const weeklyStatsResponse = await axios.get(
+				`weekly-stats?storeId=${storeId}&date=${format(currentDate, "yyyy-MM-dd")}`
+			);
+			setWeeklyStats(weeklyStatsResponse.data);
 
 			// Refresh employees to get updated hours
 			const employeesResponse = await axios.get(`employees?storeId=${storeId}`);
 			setEmployees(employeesResponse.data);
 		} catch (error) {
 			console.error("Error adding shift:", error);
+			const errorMessage =
+				axios.isAxiosError(error) && error.response?.data?.message
+					? error.response.data.message
+					: "An error occurred while adding the shift";
+			setSubmissionError(errorMessage);
 		}
 	};
 
@@ -151,14 +180,12 @@ const Schedule = () => {
 
 	// Convert shifts to events for BigCalendar
 	const events = shifts.map((shift) => {
-		console.log(shift.date);
 		const shiftDate = new Date(shift.date);
 
 		const [startHours, startMinutes] = shift.startTime.split(":").map(Number);
 		const [endHours, endMinutes] = shift.endTime.split(":").map(Number);
 
 		const start = new Date(shiftDate);
-		console.log("SD", start);
 		start.setHours(startHours, startMinutes, 0);
 
 		const end = new Date(shiftDate);
@@ -334,12 +361,19 @@ const Schedule = () => {
 					<div className="bg-white rounded-lg p-6 w-full max-w-md">
 						<h2 className="text-xl font-bold mb-4">Add New Shift</h2>
 
+						{submissionError && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">{submissionError}</div>}
+
 						<div className="mb-4">
 							<label className="block text-gray-700 text-sm font-bold mb-2">Employee</label>
 							<select
-								className="w-full px-3 py-2 border border-gray-300 rounded-md"
+								className={`w-full px-3 py-2 border ${
+									errors.employeeId ? "border-red-500" : "border-gray-300"
+								} rounded-md`}
 								value={newShift.employeeId}
-								onChange={(e) => setNewShift({ ...newShift, employeeId: e.target.value })}>
+								onChange={(e) => {
+									setNewShift({ ...newShift, employeeId: e.target.value });
+									setErrors({ ...errors, employeeId: "" });
+								}}>
 								<option value="">Select Employee</option>
 								{employees.map((employee) => (
 									<option key={employee.id} value={employee.id}>
@@ -347,16 +381,21 @@ const Schedule = () => {
 									</option>
 								))}
 							</select>
+							{errors.employeeId && <p className="text-red-500 text-xs mt-1">{errors.employeeId}</p>}
 						</div>
 
 						<div className="mb-4">
 							<label className="block text-gray-700 text-sm font-bold mb-2">Date</label>
 							<input
 								type="date"
-								className="w-full px-3 py-2 border border-gray-300 rounded-md"
+								className={`w-full px-3 py-2 border ${errors.date ? "border-red-500" : "border-gray-300"} rounded-md`}
 								value={newShift.date}
-								onChange={(e) => setNewShift({ ...newShift, date: e.target.value })}
+								onChange={(e) => {
+									setNewShift({ ...newShift, date: e.target.value });
+									setErrors({ ...errors, date: "" });
+								}}
 							/>
+							{errors.date && <p className="text-red-500 text-xs mt-1">{errors.date}</p>}
 						</div>
 
 						<div className="grid grid-cols-2 gap-4 mb-4">
@@ -364,20 +403,32 @@ const Schedule = () => {
 								<label className="block text-gray-700 text-sm font-bold mb-2">Start Time</label>
 								<input
 									type="time"
-									className="w-full px-3 py-2 border border-gray-300 rounded-md"
+									className={`w-full px-3 py-2 border ${
+										errors.startTime ? "border-red-500" : "border-gray-300"
+									} rounded-md`}
 									value={newShift.startTime}
-									onChange={(e) => setNewShift({ ...newShift, startTime: e.target.value })}
+									onChange={(e) => {
+										setNewShift({ ...newShift, startTime: e.target.value });
+										setErrors({ ...errors, startTime: "", endTime: "" });
+									}}
 								/>
+								{errors.startTime && <p className="text-red-500 text-xs mt-1">{errors.startTime}</p>}
 							</div>
 
 							<div>
 								<label className="block text-gray-700 text-sm font-bold mb-2">End Time</label>
 								<input
 									type="time"
-									className="w-full px-3 py-2 border border-gray-300 rounded-md"
+									className={`w-full px-3 py-2 border ${
+										errors.endTime ? "border-red-500" : "border-gray-300"
+									} rounded-md`}
 									value={newShift.endTime}
-									onChange={(e) => setNewShift({ ...newShift, endTime: e.target.value })}
+									onChange={(e) => {
+										setNewShift({ ...newShift, endTime: e.target.value });
+										setErrors({ ...errors, endTime: "" });
+									}}
 								/>
+								{errors.endTime && <p className="text-red-500 text-xs mt-1">{errors.endTime}</p>}
 							</div>
 						</div>
 
@@ -393,14 +444,18 @@ const Schedule = () => {
 
 						<div className="flex justify-end space-x-2">
 							<button
-								onClick={() => setShowAddShift(false)}
+								onClick={() => {
+									setShowAddShift(false);
+									setErrors({});
+									setSubmissionError(null);
+								}}
 								className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
 								Cancel
 							</button>
 							<button
 								onClick={handleAddShift}
-								className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-								disabled={!newShift.employeeId}>
+								className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-400"
+								disabled={Object.keys(errors).some((err) => errors[err])}>
 								Add Shift
 							</button>
 						</div>
