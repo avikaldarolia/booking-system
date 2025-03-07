@@ -49,7 +49,7 @@ const Schedule = () => {
 	const [showAddShift, setShowAddShift] = useState(false);
 	const [newShift, setNewShift] = useState({
 		employeeId: "",
-		date: format(new Date(), "yyyy-MM-dd"),
+		date: new Date().toISOString(),
 		startTime: "09:00",
 		endTime: "17:00",
 		note: "",
@@ -58,29 +58,25 @@ const Schedule = () => {
 	const weekStart = startOfWeek(currentDate);
 	const weekEnd = endOfWeek(currentDate);
 	const storeId = import.meta.env.VITE_STORE_ID;
-
 	useEffect(() => {
 		const fetchScheduleData = async () => {
 			try {
 				// Format dates for API requests
-				const startDateStr = format(weekStart, "yyyy-MM-dd");
-				const endDateStr = format(weekEnd, "yyyy-MM-dd");
+				const weekStart = format(startOfWeek(currentDate), "yyyy-MM-dd");
+				const weekEnd = format(endOfWeek(currentDate), "yyyy-MM-dd");
+				// const currentDateStr = format(currentDate, "yyyy-MM-dd");
 
 				// Fetch employees
 				const employeesResponse = await axios.get(`employees?storeId=${storeId}`);
 				setEmployees(employeesResponse.data);
 
 				// Fetch shifts for the week
-				const shiftsResponse = await axios.get(
-					`shifts?storeId=${storeId}&startDate=${startDateStr}&endDate=${endDateStr}`
-				);
+				const shiftsResponse = await axios.get(`shifts?storeId=${storeId}&startDate=${weekStart}&endDate=${weekEnd}`);
 				setShifts(shiftsResponse.data);
 
 				// Fetch weekly stats
-				const weeklyStatsResponse = await axios.get(
-					`weekly-stats?storeId=${storeId}&date=${format(currentDate, "yyyy-MM-dd")}`
-				);
-				setWeeklyStats(weeklyStatsResponse.data);
+				// const weeklyStatsResponse = await axios.get(`weekly-stats?storeId=${storeId}&date=${currentDateStr}`);
+				// setWeeklyStats(weeklyStatsResponse.data);
 
 				setLoading(false);
 			} catch (error) {
@@ -89,7 +85,7 @@ const Schedule = () => {
 		};
 
 		fetchScheduleData();
-	}, [currentDate, storeId, weekEnd, weekStart]);
+	}, [currentDate, storeId]);
 
 	const handlePreviousWeek = () => {
 		setCurrentDate(subWeeks(currentDate, 1));
@@ -105,23 +101,24 @@ const Schedule = () => {
 				...newShift,
 				storeId,
 				isPublished: true,
+				date: new Date(`${newShift.date}T${newShift.startTime}:00`).toISOString(),
 			});
 
 			setShifts([...shifts, response.data]);
 			setShowAddShift(false);
 			setNewShift({
 				employeeId: "",
-				date: format(new Date(), "yyyy-MM-dd"),
+				date: new Date().toISOString(),
 				startTime: "09:00",
 				endTime: "17:00",
 				note: "",
 			});
 
 			// Refresh weekly stats
-			const weeklyStatsResponse = await axios.get(
-				`weekly-stats?storeId=${storeId}&date=${format(currentDate, "yyyy-MM-dd")}`
-			);
-			setWeeklyStats(weeklyStatsResponse.data);
+			// const weeklyStatsResponse = await axios.get(
+			// 	`weekly-stats?storeId=${storeId}&date=${format(currentDate, "yyyy-MM-dd")}`
+			// );
+			// setWeeklyStats(weeklyStatsResponse.data);
 
 			// Refresh employees to get updated hours
 			const employeesResponse = await axios.get(`employees?storeId=${storeId}`);
@@ -154,11 +151,14 @@ const Schedule = () => {
 
 	// Convert shifts to events for BigCalendar
 	const events = shifts.map((shift) => {
+		console.log(shift.date);
 		const shiftDate = new Date(shift.date);
+
 		const [startHours, startMinutes] = shift.startTime.split(":").map(Number);
 		const [endHours, endMinutes] = shift.endTime.split(":").map(Number);
 
 		const start = new Date(shiftDate);
+		console.log("SD", start);
 		start.setHours(startHours, startMinutes, 0);
 
 		const end = new Date(shiftDate);

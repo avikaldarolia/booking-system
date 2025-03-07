@@ -28,7 +28,7 @@ export class Shift extends BaseEntity {
 	@ManyToOne(() => Store)
 	store: Store;
 
-	@Column("date")
+	@Column({ type: "timestamp" })
 	date: Date;
 
 	@Column("time")
