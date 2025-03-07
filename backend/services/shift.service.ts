@@ -5,7 +5,7 @@ import { Store } from "../entities/Store";
 import { Availability } from "../entities/Availability";
 import { WeeklyStats } from "../entities/WeeklyStats";
 import { Between } from "typeorm";
-import { startOfWeek, endOfWeek, format } from "date-fns";
+import { startOfWeek, endOfWeek, format, startOfDay } from "date-fns";
 import { syncShiftWithGoogleCalendar } from "../third-party/google-calendar/googleCalender";
 
 const shiftRepository = AppDataSource.getRepository(Shift);
@@ -16,6 +16,12 @@ const weeklyStatsRepository = AppDataSource.getRepository(WeeklyStats);
 
 export const getAllShifts = async (storeId?: string, startDate?: string, endDate?: string, employeeId?: string) => {
 	try {
+		const start = new Date(`${startDate}T00:00:00`); // Local midnight
+		const end = new Date(`${endDate}T23:59:59.999`);
+
+		const utcStart = start.toISOString();
+		const utcEnd = end.toISOString();
+
 		let query = shiftRepository
 			.createQueryBuilder("shift")
 			.leftJoinAndSelect("shift.employee", "employee")
@@ -29,10 +35,10 @@ export const getAllShifts = async (storeId?: string, startDate?: string, endDate
 			query = query.andWhere("employee.id = :employeeId", { employeeId });
 		}
 
-		if (startDate && endDate) {
-			query = query.andWhere("shift.date BETWEEN :startDate AND :endDate", {
-				startDate,
-				endDate,
+		if (utcStart && utcEnd) {
+			query = query.andWhere("shift.date BETWEEN :utcStart AND :utcEnd", {
+				utcStart,
+				utcEnd,
 			});
 		}
 
@@ -70,6 +76,7 @@ export const createShift = async (data: {
 }) => {
 	try {
 		const { employeeId, storeId, date, startTime, endTime, note, isPublished } = data;
+		const shiftDate = new Date(date);
 
 		const employee = await employeeRepository.findOne({ where: { id: employeeId } });
 		if (!employee) throw new Error("Employee not found");
@@ -77,13 +84,10 @@ export const createShift = async (data: {
 		const store = await storeRepository.findOne({ where: { id: storeId } });
 		if (!store) throw new Error("Store not found");
 
-		const shiftDate = new Date(date);
-		const formattedDate = new Date(format(shiftDate, "yyyy-MM-dd"));
-
 		const availability = await availabilityRepository.findOne({
 			where: {
 				employee: { id: employeeId },
-				date: formattedDate,
+				date: shiftDate,
 				isBlocked: true,
 			},
 		});
