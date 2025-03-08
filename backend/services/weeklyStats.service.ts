@@ -58,8 +58,8 @@ export const UpdateWeeklyStats = async (id: string, budgetAllocated: number, not
 		}
 
 		// Calculate new budget remaining
-		const budgetDiff = budgetAllocated - weeklyStats.budgetAllocated;
-		const newBudgetRemaining = weeklyStats.budgetRemaining + budgetDiff;
+		const budgetDiff = Number(budgetAllocated) - Number(weeklyStats.budgetAllocated);
+		const newBudgetRemaining = Number(weeklyStats.budgetRemaining) + budgetDiff;
 
 		weeklyStatsRepository.merge(weeklyStats, {
 			budgetAllocated,

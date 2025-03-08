@@ -151,7 +151,7 @@ export const createShift = async (data: {
  * Updates employee's current hours.
  */
 const updateEmployeeHours = async (queryRunner: any, employee: Employee, hours: number) => {
-	employee.currentHours += hours;
+	employee.currentHours += Number(hours);
 	await queryRunner.manager.getRepository(Employee).save(employee);
 };
 
@@ -159,9 +159,9 @@ const updateEmployeeHours = async (queryRunner: any, employee: Employee, hours: 
  * Updates weekly stats with shift details.
  */
 const updateWeeklyStats = async (queryRunner: any, weeklyStats: WeeklyStats, hours: number, cost: number) => {
-	weeklyStats.totalHours += hours;
-	weeklyStats.totalCost += cost;
-	weeklyStats.budgetRemaining -= cost;
+	weeklyStats.totalHours = Number(weeklyStats.totalHours) + Number(hours);
+	weeklyStats.totalCost = Number(weeklyStats.totalCost) + Number(cost);
+	weeklyStats.budgetRemaining = Number(weeklyStats.budgetRemaining) - Number(cost);
 	await queryRunner.manager.getRepository(WeeklyStats).save(weeklyStats);
 };
 
@@ -297,14 +297,13 @@ export const updateShift = async (
 };
 
 export const deleteShift = async (id: string) => {
-	try {
+	return runInTransaction(async (queryRunner) => {
 		const shift = await shiftRepository.findOne({
 			where: { id },
 			relations: ["employee", "store"],
 		});
 
 		if (!shift) throw new Error("Shift not found");
-
 		const weekStart = startOfWeek(new Date(shift.date));
 		const weekEnd = endOfWeek(new Date(shift.date));
 
@@ -320,17 +319,15 @@ export const deleteShift = async (id: string) => {
 		await employeeRepository.save(employee);
 
 		if (weeklyStats) {
-			weeklyStats.totalHours -= shift.hours;
-			weeklyStats.totalCost -= shift.cost;
-			weeklyStats.budgetRemaining += shift.cost;
+			weeklyStats.totalHours = Number(weeklyStats.totalHours) - Number(shift.hours);
+			weeklyStats.totalCost = Number(weeklyStats.totalCost) - Number(shift.cost);
+			weeklyStats.budgetRemaining = Number(weeklyStats.budgetRemaining) + Number(shift.cost);
 			await weeklyStatsRepository.save(weeklyStats);
 		}
 
 		await shiftRepository.remove(shift);
 		return { message: "Shift deleted successfully" };
-	} catch (error) {
-		throw new Error(`Failed to delete shift: ${error instanceof Error && error.message}`);
-	}
+	});
 };
 
 export const publishShift = async (id: string) => {

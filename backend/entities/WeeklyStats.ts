@@ -8,7 +8,7 @@ export class WeeklyStats extends BaseEntity {
 	id: string;
 
 	@RelationId((weeklyStats: WeeklyStats) => weeklyStats.store)
-	employeeId: string;
+	storeId: string;
 
 	@ManyToOne(() => Store, (store) => store.weeklyBudget)
 	store: Store;
