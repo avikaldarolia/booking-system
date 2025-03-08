@@ -5,6 +5,8 @@ import { Employee } from "./entities/Employee";
 import { Availability } from "./entities/Availability";
 import { Shift } from "./entities/Shift";
 import { WeeklyStats } from "./entities/WeeklyStats";
+import { Reservation } from "./entities/Reservation";
+import { Customer } from "./entities/Customer";
 
 dotenv.config();
 
@@ -17,7 +19,7 @@ export const AppDataSource = new DataSource({
 	database: process.env.DB_NAME || "booking",
 	synchronize: true, // Set to false in production
 	logging: process.env.NODE_ENV === "development",
-	entities: [Store, Employee, Availability, Shift, WeeklyStats],
+	entities: [Store, Employee, Availability, Shift, WeeklyStats, Reservation, Customer],
 	subscribers: [],
 	migrations: [],
 });
