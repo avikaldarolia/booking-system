@@ -66,7 +66,7 @@ const Schedule = () => {
 				// Format dates for API requests
 				const weekStart = format(startOfWeek(currentDate), "yyyy-MM-dd");
 				const weekEnd = format(endOfWeek(currentDate), "yyyy-MM-dd");
-				// const currentDateStr = format(currentDate, "yyyy-MM-dd");
+				const currentDateStr = format(currentDate, "yyyy-MM-dd");
 
 				// Fetch employees
 				const employeesResponse = await axios.get(`employees?storeId=${storeId}`);
@@ -77,8 +77,8 @@ const Schedule = () => {
 				setShifts(shiftsResponse.data);
 
 				// Fetch weekly stats
-				// const weeklyStatsResponse = await axios.get(`weekly-stats?storeId=${storeId}&date=${currentDateStr}`);
-				// setWeeklyStats(weeklyStatsResponse.data);
+				const weeklyStatsResponse = await axios.get(`weekly-stats?storeId=${storeId}&date=${currentDateStr}`);
+				setWeeklyStats(weeklyStatsResponse.data);
 
 				setLoading(false);
 			} catch (error) {
