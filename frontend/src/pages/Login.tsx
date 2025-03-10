@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calendar, User, Lock, Mail, Phone } from "lucide-react";
+import { Calendar, User as UserIcon, Lock, Mail, Phone } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import axios from "axios";
 import { RoleBasedRenderHash } from "../utils/utils";
+import { User } from "../types";
 
 type FormType = "employee" | "customerLogin" | "customerSignup";
 
@@ -16,7 +17,7 @@ interface CustomerSignupData {
 
 const Login = () => {
 	const navigate = useNavigate();
-	const { user, login } = useAuth();
+	const { user, login }: { user: User | null; login: (email: string, password: string) => Promise<void> } = useAuth();
 
 	const [activeForm, setActiveForm] = useState<FormType>("customerLogin");
 	const [email, setEmail] = useState("");
@@ -217,7 +218,7 @@ const Login = () => {
 				</label>
 				<div className="mt-1 relative rounded-md shadow-sm">
 					<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-						<User className="h-5 w-5 text-gray-400" />
+						<UserIcon className="h-5 w-5 text-gray-400" />
 					</div>
 					<input
 						id="name"

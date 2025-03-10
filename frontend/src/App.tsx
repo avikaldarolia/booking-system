@@ -23,15 +23,15 @@ import { RoleBasedRenderHash } from "./utils/utils";
 import EmployeeAvailability from "./pages/employee-portal/Availability";
 import EmployeeReservations from "./pages/employee-portal/Reservations";
 import EmployeeSchedule from "./pages/employee-portal/Schedule";
+import { User } from "./types";
 
 interface PrivateRouteProps {
 	children: React.ReactNode;
 	allowedRoles: string[];
+	user: User | null;
 }
 
-function PrivateRoute({ children, allowedRoles }: PrivateRouteProps) {
-	const { user } = useAuth();
-
+function PrivateRoute({ user, children, allowedRoles }: PrivateRouteProps) {
 	if (!user) return <Navigate to="/login" replace />;
 
 	if (!allowedRoles.includes(user.role)) {
@@ -42,12 +42,12 @@ function PrivateRoute({ children, allowedRoles }: PrivateRouteProps) {
 	return children;
 }
 function AppContent() {
-	const { user } = useAuth();
-	const getSidebar = () => (user?.role ? RoleBasedRenderHash[user.role]?.sidebar() || null : null);
+	const { user }: { user: User | null } = useAuth();
+	const sidebar = user?.role ? RoleBasedRenderHash[user.role]?.sidebar() : null;
 
 	return (
 		<div className="flex h-screen bg-gray-100">
-			{user && getSidebar()}
+			{user && sidebar}
 			<div className="flex-1 flex flex-col overflow-hidden">
 				{user && <Header />}
 				<main className="flex-1 overflow-y-auto p-4">
@@ -60,7 +60,7 @@ function AppContent() {
 						<Route
 							path="/manager-portal/*"
 							element={
-								<PrivateRoute allowedRoles={["manager"]}>
+								<PrivateRoute user={user} allowedRoles={["manager"]}>
 									<Routes>
 										<Route path="" element={<Dashboard />} />
 										<Route path="employees" element={<Employees />} />
@@ -78,7 +78,7 @@ function AppContent() {
 						<Route
 							path="/employee-portal/*"
 							element={
-								<PrivateRoute allowedRoles={["associate", "part_time"]}>
+								<PrivateRoute user={user} allowedRoles={["associate", "part_time"]}>
 									<Routes>
 										<Route path="" element={<EmployeePortal />} />
 										{/* Add emp detail page as well. */}
@@ -95,7 +95,7 @@ function AppContent() {
 						<Route
 							path="/customer-portal/*"
 							element={
-								<PrivateRoute allowedRoles={["customer"]}>
+								<PrivateRoute user={user} allowedRoles={["customer"]}>
 									<CustomerPortal />
 								</PrivateRoute>
 							}

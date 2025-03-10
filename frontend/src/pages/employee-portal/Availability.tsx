@@ -3,6 +3,7 @@ import axios from "axios";
 import { format, parseISO } from "date-fns";
 import { useAuth } from "../../contexts/AuthContext";
 import { Calendar, Clock, Plus, Trash2 } from "lucide-react";
+import Spinner from "../../components/Spinner";
 
 interface Availability {
 	id: string;
@@ -25,6 +26,7 @@ const EmployeeAvailability = () => {
 		isBlocked: true,
 		note: "",
 	});
+	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
 		const fetchAvailability = async () => {
@@ -74,22 +76,18 @@ const EmployeeAvailability = () => {
 	};
 
 	if (loading) {
-		return (
-			<div className="flex justify-center items-center h-full">
-				<div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-			</div>
-		);
+		return <Spinner />;
 	}
 
 	return (
 		<div className="p-6">
 			<div className="flex justify-between items-center mb-6">
-				<h2 className="text-2xl font-bold text-gray-800">My Availability</h2>
+				<h2 className="text-2xl font-bold text-gray-800">My Availability (Blocked)</h2>
 				<button
 					onClick={() => setShowAddModal(true)}
 					className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center">
 					<Plus className="h-5 w-5 mr-1" />
-					Add Availability
+					Add Blocker
 				</button>
 			</div>
 
@@ -124,6 +122,10 @@ const EmployeeAvailability = () => {
 				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 					<div className="bg-white rounded-lg p-6 w-full max-w-md">
 						<h3 className="text-xl font-bold mb-4">Add Availability</h3>
+
+						{error && (
+							<div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">{error}</div>
+						)}
 
 						<div className="mb-4">
 							<label className="block text-gray-700 text-sm font-bold mb-2">Date</label>
@@ -189,7 +191,10 @@ const EmployeeAvailability = () => {
 
 						<div className="flex justify-end space-x-2">
 							<button
-								onClick={() => setShowAddModal(false)}
+								onClick={() => {
+									setShowAddModal(false);
+									setError(null);
+								}}
 								className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
 								Cancel
 							</button>

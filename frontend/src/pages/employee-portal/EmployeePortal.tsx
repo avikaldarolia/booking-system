@@ -4,36 +4,7 @@ import axios from "axios";
 import { Calendar, Clock, CalendarCheck } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { useAuth } from "../../contexts/AuthContext";
-
-interface Shift {
-	id: string;
-	date: string;
-	startTime: string;
-	endTime: string;
-	note: string;
-}
-
-interface Availability {
-	id: string;
-	date: string;
-	startTime: string;
-	endTime: string;
-	isBlocked: boolean;
-	note: string;
-}
-
-interface Reservation {
-	id: string;
-	customer: {
-		name: string;
-		email: string;
-	};
-	date: string;
-	startTime: string;
-	endTime: string;
-	status: string;
-	notes: string;
-}
+import { Availability, Reservation, Shift } from "../../types";
 
 const EmployeePortal = () => {
 	const { user } = useAuth();
@@ -58,41 +29,6 @@ const EmployeePortal = () => {
 			} catch (error) {
 				console.error("Error fetching employee data:", error);
 				// set mock data
-				setShifts([
-					{
-						id: "1",
-						date: "2024-02-20",
-						startTime: "09:00",
-						endTime: "17:00",
-						note: "Regular shift",
-					},
-				]);
-
-				setAvailabilities([
-					{
-						id: "1",
-						date: "2024-02-21",
-						startTime: "09:00",
-						endTime: "17:00",
-						isBlocked: true,
-						note: "Day off requested",
-					},
-				]);
-
-				setReservations([
-					{
-						id: "1",
-						customer: {
-							name: "John Smith",
-							email: "john@example.com",
-						},
-						date: "2024-02-22",
-						startTime: "10:00",
-						endTime: "11:00",
-						status: "confirmed",
-						notes: "First-time customer",
-					},
-				]);
 
 				setLoading(false);
 			}

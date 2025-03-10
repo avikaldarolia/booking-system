@@ -3,20 +3,7 @@ import axios from "axios";
 import { format, parseISO } from "date-fns";
 import { useAuth } from "../../contexts/AuthContext";
 import { Calendar, Clock, User, Check, X } from "lucide-react";
-
-interface Reservation {
-	id: string;
-	customer: {
-		name: string;
-		email: string;
-		phone: string;
-	};
-	date: string;
-	startTime: string;
-	endTime: string;
-	status: string;
-	notes: string;
-}
+import { Reservation } from "../../types";
 
 const EmployeeReservations = () => {
 	const { user } = useAuth();
