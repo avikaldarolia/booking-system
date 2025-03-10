@@ -35,7 +35,7 @@ const CustomerBook = () => {
 	useEffect(() => {
 		const fetchEmployees = async () => {
 			try {
-				const response = await axios.get("/api/employees");
+				const response = await axios.get("employees");
 				setEmployees(response.data);
 				setLoading(false);
 			} catch (error) {
@@ -52,7 +52,7 @@ const CustomerBook = () => {
 			if (!selectedEmployee || !selectedDate) return;
 
 			try {
-				const response = await axios.get("/api/reservations/slots", {
+				const response = await axios.get("reservations/slots", {
 					params: {
 						employeeId: selectedEmployee.id,
 						date: selectedDate,
@@ -73,7 +73,7 @@ const CustomerBook = () => {
 
 		setBooking(true);
 		try {
-			await axios.post("/api/reservations", {
+			await axios.post("reservations", {
 				employeeId: selectedEmployee.id,
 				date: selectedDate,
 				startTime: selectedSlot,

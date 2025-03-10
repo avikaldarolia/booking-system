@@ -63,7 +63,7 @@ export const login = utils.asyncMiddleware(async (req: Request, res: Response) =
 			{
 				id: user.id,
 				email: user.email,
-				role: role === "associate" || role === "part_time" ? user.type : role,
+				role: user.type ? user.type : role,
 			},
 			JWT_SECRET,
 			{ expiresIn: "24h" }
