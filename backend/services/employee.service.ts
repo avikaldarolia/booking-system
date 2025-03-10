@@ -110,8 +110,6 @@ export const DeleteEmployee = async (id: string) => {
 			throw new Error(`Employee with id ${id} not found.`);
 		}
 
-		console.log("HERE", employee);
-
 		await employeeRepository.remove(employee);
 		return { message: "Employee deleted successfully." };
 	} catch (error) {

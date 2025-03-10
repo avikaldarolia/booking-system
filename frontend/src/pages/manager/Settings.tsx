@@ -34,7 +34,6 @@ const Settings = () => {
 
 				// Check if Google Calendar is connected
 				const calendarResponse = await axios.get(`google-calendar/heartbeat`);
-				console.log("calender Response", calendarResponse);
 
 				setGoogleCalendarConnected(calendarResponse.data.googleCalendarConnected);
 

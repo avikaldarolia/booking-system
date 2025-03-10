@@ -32,7 +32,6 @@ const CustomerPortal = () => {
 	const [reservations, setReservations] = useState<Reservation[]>([]);
 	const [employees, setEmployees] = useState<Employee[]>([]);
 	const [loading, setLoading] = useState(true);
-	console.log("here");
 
 	useEffect(() => {
 		const fetchCustomerData = async () => {

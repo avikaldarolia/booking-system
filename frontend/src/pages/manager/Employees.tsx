@@ -240,7 +240,7 @@ const Employees = () => {
 								<input
 									type={showPassword ? "text" : "password"}
 									className="w-full outline-none text-gray-700"
-									value={`${newEmployee.name}-${newEmployee.email}`}
+									value={newEmployee.name && newEmployee.email && `${newEmployee.name}-${newEmployee.email}`}
 									readOnly
 								/>
 								<button
