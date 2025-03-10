@@ -1,5 +1,5 @@
 import { addWeeks, endOfWeek, format, startOfWeek, subWeeks } from "date-fns";
-import Spinner from "../components/Spinner";
+import Spinner from "../../components/Spinner";
 import { useEffect, useState } from "react";
 import { Calendar, ChevronLeft, ChevronRight, Clock, DollarSign, Edit, Save } from "lucide-react";
 import axios from "axios";

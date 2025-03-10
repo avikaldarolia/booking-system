@@ -47,7 +47,7 @@ const CustomerPortal = () => {
 				setLoading(false);
 			} catch (error) {
 				console.error("Error fetching customer data:", error);
-				// For demo, set mock data
+				// set mock data
 				setReservations([
 					{
 						id: "1",

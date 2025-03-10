@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import { ArrowLeft, Calendar, Clock, Plus, Save, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Spinner from "../components/Spinner";
+import Spinner from "../../components/Spinner";
 
 interface Employee {
 	id: string;

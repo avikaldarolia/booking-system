@@ -3,7 +3,7 @@ import axios from "axios";
 // import { Calendar, Clock, User, CalendarCheck } from "lucide-react";
 import { Calendar, Clock, CalendarCheck } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface Shift {
 	id: string;
@@ -59,7 +59,7 @@ const EmployeePortal = () => {
 				setLoading(false);
 			} catch (error) {
 				console.error("Error fetching employee data:", error);
-				// For demo, set mock data
+				// set mock data
 				setShifts([
 					{
 						id: "1",

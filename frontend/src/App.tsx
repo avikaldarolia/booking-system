@@ -1,37 +1,32 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-// Pages
-import Dashboard from "./pages/Dashboard";
-import Employees from "./pages/Employees";
-import Schedule from "./pages/Schedule";
-import Settings from "./pages/Settings";
-import EmployeeDetail from "./pages/EmployeeDetail";
-import WeeklyStats from "./pages/WeeklyStats";
-import CustomerBooking from "./pages/CustomerBooking";
-import EmployeePortal from "./pages/EmployeePortal";
-import CustomerPortal from "./pages/CustomerPortal";
+
+import Dashboard from "./pages/manager/Dashboard";
+import Employees from "./pages/manager/Employees";
+import Schedule from "./pages/manager/Schedule";
+import Settings from "./pages/manager/Settings";
+import EmployeeDetail from "./pages/manager/EmployeeDetail";
+import WeeklyStats from "./pages/manager/WeeklyStats";
+import CustomerBooking from "./pages/customer/CustomerBooking";
+import EmployeePortal from "./pages/employee-portal/EmployeePortal";
+import CustomerPortal from "./pages/customer/CustomerPortal";
 import Login from "./pages/Login";
 
 // Components
-// import ManagerSidebar from "./components/ManagerSidebar";
-// import EmployeeSidebar from "./components/EmployeeSidebar";
-// import CustomerSidebar from "./components/CustomerSidebar";
 import Header from "./components/Header";
 
 // Context
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+
+// Utils
 import { RoleBasedRenderHash } from "./utils/utils";
+import EmployeeAvailability from "./pages/employee-portal/Availability";
+import EmployeeReservations from "./pages/employee-portal/Reservations";
+import EmployeeSchedule from "./pages/employee-portal/Schedule";
 
 interface PrivateRouteProps {
 	children: React.ReactNode;
 	allowedRoles: string[];
 }
-
-// const RoleBasedRenderHash = {
-// 	associate: { page: <EmployeePortal />, sidebar: <EmployeeSidebar />, defaultRoute: "/employee" },
-// 	part_time: { page: <EmployeePortal />, sidebar: <EmployeeSidebar />, defaultRoute: "/employee" },
-// 	manager: { page: <Dashboard />, sidebar: <ManagerSidebar />, defaultRoute: "/" },
-// 	customer: { page: <CustomerPortal />, sidebar: <CustomerSidebar />, defaultRoute: "/customer" },
-// };
 
 function PrivateRoute({ children, allowedRoles }: PrivateRouteProps) {
 	const { user } = useAuth();
@@ -48,19 +43,6 @@ function PrivateRoute({ children, allowedRoles }: PrivateRouteProps) {
 function AppContent() {
 	const { user } = useAuth();
 
-	// const getSidebar = () => {
-	// 	switch (user?.role) {
-	// 		case "manager":
-	// 			return <ManagerSidebar />;
-	// 		case "associate":
-	// 			return <EmployeeSidebar />;
-	// 		case "customer":
-	// 			return <CustomerSidebar />;
-	// 		default:
-	// 			return null;
-	// 	}
-	// };
-
 	const getSidebar = () => (user?.role ? RoleBasedRenderHash[user.role]?.sidebar() || null : null);
 
 	return (
@@ -76,67 +58,42 @@ function AppContent() {
 
 						{/* Manager Routes */}
 						<Route
-							path="/"
+							path="/manager-portal/*"
 							element={
 								<PrivateRoute allowedRoles={["manager"]}>
-									<Dashboard />
-								</PrivateRoute>
-							}
-						/>
-						<Route
-							path="/employees"
-							element={
-								<PrivateRoute allowedRoles={["manager"]}>
-									<Employees />
-								</PrivateRoute>
-							}
-						/>
-						<Route
-							path="/employees/:id"
-							element={
-								<PrivateRoute allowedRoles={["manager"]}>
-									<EmployeeDetail />
-								</PrivateRoute>
-							}
-						/>
-						<Route
-							path="/schedule"
-							element={
-								<PrivateRoute allowedRoles={["manager"]}>
-									<Schedule />
-								</PrivateRoute>
-							}
-						/>
-						<Route
-							path="/weekly-stats"
-							element={
-								<PrivateRoute allowedRoles={["manager"]}>
-									<WeeklyStats />
-								</PrivateRoute>
-							}
-						/>
-						<Route
-							path="/settings"
-							element={
-								<PrivateRoute allowedRoles={["manager"]}>
-									<Settings />
+									<Routes>
+										<Route path="" element={<Dashboard />} />
+										<Route path="employees" element={<Employees />} />
+										<Route path="employee/:id" element={<EmployeeDetail />} />
+										<Route path="schedule" element={<Schedule />} />
+										<Route path="weekly-stats" element={<WeeklyStats />} />
+										<Route path="settings" element={<Settings />} />
+										<Route path="*" element={<Navigate to="/manager-portal/" replace />} />
+									</Routes>
 								</PrivateRoute>
 							}
 						/>
 
 						{/* Employee Routes */}
 						<Route
-							path="/employee-portal"
+							path="/employee-portal/*"
 							element={
 								<PrivateRoute allowedRoles={["associate", "part_time"]}>
-									<EmployeePortal />
+									<Routes>
+										<Route path="" element={<EmployeePortal />} />
+										{/* Add emp detail page as well. */}
+										<Route path="availability" element={<EmployeeAvailability />} />
+										<Route path="reservations" element={<EmployeeReservations />} />
+										<Route path="schedule" element={<EmployeeSchedule />} />
+										<Route path="*" element={<Navigate to="/employee-portal/" replace />} />
+									</Routes>
 								</PrivateRoute>
 							}
 						/>
 
 						{/* Customer Routes */}
 						<Route
-							path="/customer-portal"
+							path="/customer-portal/*"
 							element={
 								<PrivateRoute allowedRoles={["customer"]}>
 									<CustomerPortal />
@@ -145,7 +102,10 @@ function AppContent() {
 						/>
 
 						{/* Catch-all for unauthorized users */}
-						<Route path="*" element={<Navigate to={user ? "/" : "/login"} replace />} />
+						<Route
+							path="*"
+							element={<Navigate to={user ? RoleBasedRenderHash[user.role].route : "/login"} replace />}
+						/>
 					</Routes>
 				</main>
 			</div>
@@ -155,10 +115,10 @@ function AppContent() {
 
 export default function App() {
 	return (
-		<AuthProvider>
-			<Router>
+		<Router>
+			<AuthProvider>
 				<AppContent />
-			</Router>
-		</AuthProvider>
+			</AuthProvider>
+		</Router>
 	);
 }

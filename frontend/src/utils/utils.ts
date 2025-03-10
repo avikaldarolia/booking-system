@@ -5,6 +5,6 @@ import CustomerSidebar from "../components/CustomerSidebar";
 export const RoleBasedRenderHash = {
 	part_time: { route: "/employee-portal", sidebar: EmployeeSidebar },
 	associate: { route: "/employee-portal", sidebar: EmployeeSidebar },
-	manager: { route: "/", sidebar: ManagerSidebar },
+	manager: { route: "/manager-portal", sidebar: ManagerSidebar },
 	customer: { route: "/customer-portal", sidebar: CustomerSidebar },
 };

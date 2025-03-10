@@ -72,7 +72,7 @@ const CustomerBooking = () => {
 				setAvailableSlots(response.data);
 			} catch (error) {
 				console.error("Error fetching available slots:", error);
-				// For demo, set mock slots
+				// set mock slots
 				const mockSlots = [
 					{ startTime: "09:00", endTime: "09:30", available: true },
 					{ startTime: "09:30", endTime: "10:00", available: false },

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Spinner from "../components/Spinner";
+import Spinner from "../../components/Spinner";
 import { Save, Store, Calendar, RefreshCw } from "lucide-react";
 import axios from "axios";
 

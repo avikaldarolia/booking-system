@@ -11,7 +11,7 @@ const ManagerSidebar = () => {
 
 			<nav className="flex-1 px-2 py-4">
 				<NavLink
-					to="/"
+					to="/manager-portal/"
 					className={({ isActive }) =>
 						`flex items-center px-4 py-2 mt-2 rounded-md ${
 							isActive ? "bg-gray-700 text-white" : "text-gray-300 hover:bg-gray-700"
@@ -22,7 +22,7 @@ const ManagerSidebar = () => {
 				</NavLink>
 
 				<NavLink
-					to="/employees"
+					to="manager-portal/employees"
 					className={({ isActive }) =>
 						`flex items-center px-4 py-2 mt-2 rounded-md ${
 							isActive ? "bg-gray-700 text-white" : "text-gray-300 hover:bg-gray-700"
@@ -33,7 +33,7 @@ const ManagerSidebar = () => {
 				</NavLink>
 
 				<NavLink
-					to="/schedule"
+					to="manager-portal/schedule"
 					className={({ isActive }) =>
 						`flex items-center px-4 py-2 mt-2 rounded-md ${
 							isActive ? "bg-gray-700 text-white" : "text-gray-300 hover:bg-gray-700"
@@ -44,7 +44,7 @@ const ManagerSidebar = () => {
 				</NavLink>
 
 				<NavLink
-					to="/reservations"
+					to="manager-portal/reservations"
 					className={({ isActive }) =>
 						`flex items-center px-4 py-2 mt-2 rounded-md ${
 							isActive ? "bg-gray-700 text-white" : "text-gray-300 hover:bg-gray-700"
@@ -66,7 +66,7 @@ const ManagerSidebar = () => {
 				</NavLink>
 
 				<NavLink
-					to="/settings"
+					to="manager-portal/settings"
 					className={({ isActive }) =>
 						`flex items-center px-4 py-2 mt-2 rounded-md ${
 							isActive ? "bg-gray-700 text-white" : "text-gray-300 hover:bg-gray-700"
