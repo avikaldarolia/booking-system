@@ -2,9 +2,9 @@ import { endOfWeek, format, startOfWeek } from "date-fns";
 import { BarChart2, Calendar, Clock, DollarSign, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import Spinner from "../components/Spinner";
+import Spinner from "../../components/Spinner";
 
-const ManagerDashboard = () => {
+const Dashboard = () => {
 	const [stats, setStats] = useState({
 		totalEmployees: 0,
 		weeklyBudget: 0,
@@ -16,7 +16,6 @@ const ManagerDashboard = () => {
 
 	const [loading, setLoading] = useState(true);
 
-	// console.log(import.meta.env.VITE_STORE_ID);
 	const storeId = import.meta.env.VITE_STORE_ID;
 
 	useEffect(() => {
@@ -180,4 +179,4 @@ const ManagerDashboard = () => {
 	);
 };
 
-export default ManagerDashboard;
+export default Dashboard;

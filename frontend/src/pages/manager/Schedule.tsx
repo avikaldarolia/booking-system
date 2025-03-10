@@ -2,7 +2,7 @@ import axios from "axios";
 import { addWeeks, endOfWeek, format, startOfWeek, subWeeks } from "date-fns";
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, DollarSign, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
-import Spinner from "../components/Spinner";
+import Spinner from "../../components/Spinner";
 import { Calendar as BigCalendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";

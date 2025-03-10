@@ -1,5 +1,5 @@
 import { addWeeks, endOfWeek, format, startOfWeek, subWeeks } from "date-fns";
-import Spinner from "../components/Spinner";
+import Spinner from "../../components/Spinner";
 import { useEffect, useState } from "react";
 import { Calendar, ChevronLeft, ChevronRight, Clock, DollarSign, Edit, Save } from "lucide-react";
 import axios from "axios";
@@ -77,7 +77,7 @@ const WeeklyStats = () => {
 		if (!stats) return;
 
 		try {
-			const response = await axios.put(`/api/weekly-stats/${stats.id}`, editedStats);
+			const response = await axios.put(`weekly-stats/${stats.id}`, editedStats);
 			setStats(response.data);
 			setEditing(false);
 		} catch (error) {

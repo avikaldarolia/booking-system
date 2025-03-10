@@ -42,6 +42,7 @@ export const CreateEmployee = async (data: {
 	maxHours: number;
 	hourlyRate: number;
 	storeId: string;
+	password: string;
 }) => {
 	try {
 		const store = await storeRepository.findOne({ where: { id: data.storeId } });
@@ -50,6 +51,26 @@ export const CreateEmployee = async (data: {
 			throw new Error("Store not found.");
 		}
 
+		if (!data.email || !data.name) {
+			throw new Error("Name and Email are required.");
+		}
+
+		const employeeExists = await employeeRepository.findOne({
+			where: {
+				email: data.email,
+			},
+		});
+
+		if (employeeExists) {
+			throw new Error("Employee with this email already exists");
+		}
+
+		data.type = data.type ?? EmployeeType.ASSOCIATE;
+		data.hourlyRate = data.hourlyRate ?? 20;
+		data.hourlyRate = data.hourlyRate ?? 10;
+		data.password = `${data.name}-${data.email}`;
+
+		// REMOVE PASSWORD BEFORE SEDNING IT BACK.
 		const newEmployee = employeeRepository.create({ ...data, store });
 		return await employeeRepository.save(newEmployee);
 	} catch (error) {
@@ -80,6 +101,7 @@ export const UpdateEmployee = async (id: string, data: Partial<Employee>) => {
 	}
 };
 
+// DELETE: Availability and shifts first.
 export const DeleteEmployee = async (id: string) => {
 	try {
 		const employee = await employeeRepository.findOne({ where: { id } });
@@ -87,6 +109,8 @@ export const DeleteEmployee = async (id: string) => {
 		if (!employee) {
 			throw new Error(`Employee with id ${id} not found.`);
 		}
+
+		console.log("HERE", employee);
 
 		await employeeRepository.remove(employee);
 		return { message: "Employee deleted successfully." };

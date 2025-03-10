@@ -51,10 +51,4 @@ export class Shift extends BaseEntity {
 
 	@Column("text", { nullable: true })
 	googleCalendarEventId: string;
-
-	@CreateDateColumn()
-	createdAt: Date;
-
-	@UpdateDateColumn()
-	updatedAt: Date;
 }

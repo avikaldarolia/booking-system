@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import express from "express";
-import path from "path";
+// import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
 import { AppDataSource } from "./data-source";
@@ -10,6 +10,8 @@ import availabilityRoutes from "./routes/availability.routes";
 import shiftRoutes from "./routes/shift.routes";
 import weeklyStatsRoutes from "./routes/weeklyStats.routes";
 import googleCalendarRoutes from "./routes/googleCalendar.routes";
+import authRoutes from "./routes/auth.routes";
+import reservationRoutes from "./routes/reservation.routes";
 
 dotenv.config();
 
@@ -21,12 +23,14 @@ app.disable("x-powered-by");
 
 const PORT = process.env.PORT || 8000;
 
+app.use("/api/auth", authRoutes);
 app.use("/api/stores", storeRoutes);
 app.use("/api/employees", employeeRoutes);
 app.use("/api/availability", availabilityRoutes);
 app.use("/api/shifts", shiftRoutes);
 app.use("/api/weekly-stats", weeklyStatsRoutes);
 app.use("/api/google-calendar", googleCalendarRoutes);
+app.use("/api/reservations", reservationRoutes);
 
 AppDataSource.initialize()
 	.then(() => {
