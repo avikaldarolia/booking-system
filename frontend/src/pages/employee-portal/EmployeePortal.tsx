@@ -42,8 +42,6 @@ const EmployeePortal = () => {
 	const [reservations, setReservations] = useState<Reservation[]>([]);
 	const [loading, setLoading] = useState(true);
 
-	console.log("here");
-
 	useEffect(() => {
 		const fetchEmployeeData = async () => {
 			try {

@@ -29,7 +29,7 @@ const EmployeeAvailability = () => {
 	useEffect(() => {
 		const fetchAvailability = async () => {
 			try {
-				const response = await axios.get(`/api/availability/employee/${user?.id}`);
+				const response = await axios.get(`availability/employee/${user?.id}`);
 				setAvailabilities(response.data);
 				setLoading(false);
 			} catch (error) {
@@ -45,7 +45,7 @@ const EmployeeAvailability = () => {
 
 	const handleAddAvailability = async () => {
 		try {
-			const response = await axios.post("/api/availability", {
+			const response = await axios.post("availability", {
 				...newAvailability,
 				employeeId: user?.id,
 			});
@@ -66,7 +66,7 @@ const EmployeeAvailability = () => {
 
 	const handleDeleteAvailability = async (id: string) => {
 		try {
-			await axios.delete(`/api/availability/${id}`);
+			await axios.delete(`availability/${id}`);
 			setAvailabilities(availabilities.filter((a) => a.id !== id));
 		} catch (error) {
 			console.error("Error deleting availability:", error);

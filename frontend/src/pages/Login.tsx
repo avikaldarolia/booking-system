@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Calendar, User, Lock, Mail, Phone } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import axios from "axios";
+import { RoleBasedRenderHash } from "../utils/utils";
 
 type FormType = "employee" | "customerLogin" | "customerSignup";
 
@@ -15,7 +16,7 @@ interface CustomerSignupData {
 
 const Login = () => {
 	const navigate = useNavigate();
-	const { login } = useAuth();
+	const { user, login } = useAuth();
 
 	const [activeForm, setActiveForm] = useState<FormType>("customerLogin");
 	const [email, setEmail] = useState("");
@@ -29,6 +30,13 @@ const Login = () => {
 		phone: "",
 		password: "",
 	});
+
+	useEffect(() => {
+		if (user && !loading) {
+			const defaultRoute = RoleBasedRenderHash[user.role]?.route || "/login";
+			navigate(defaultRoute, { replace: true });
+		}
+	}, [user, loading, navigate]);
 
 	const handleEmployeeLogin = async (e: React.FormEvent) => {
 		e.preventDefault();

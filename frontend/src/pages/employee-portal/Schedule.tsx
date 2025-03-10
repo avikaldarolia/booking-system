@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { useAuth } from "../../contexts/AuthContext";
 import { Calendar as CalendarIcon } from "lucide-react";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import Spinner from "../../components/Spinner";
 
 const localizer = momentLocalizer(moment);
 
@@ -38,8 +39,8 @@ const EmployeeSchedule = () => {
 		const fetchSchedule = async () => {
 			try {
 				const [shiftsRes, reservationsRes] = await Promise.all([
-					axios.get(`/api/shifts?employeeId=${user?.id}`),
-					axios.get(`/api/reservations?employeeId=${user?.id}`),
+					axios.get(`shifts?employeeId=${user?.id}`),
+					axios.get(`reservations?employeeId=${user?.id}`),
 				]);
 
 				setShifts(shiftsRes.data);
@@ -57,28 +58,48 @@ const EmployeeSchedule = () => {
 	}, [user]);
 
 	const events = [
-		...shifts.map((shift) => ({
-			id: shift.id,
-			title: "Shift",
-			start: new Date(`${shift.date}T${shift.startTime}`),
-			end: new Date(`${shift.date}T${shift.endTime}`),
-			resource: "shift",
-		})),
-		...reservations.map((reservation) => ({
-			id: reservation.id,
-			title: `Appointment: ${reservation.customer.name}`,
-			start: new Date(`${reservation.date}T${reservation.startTime}`),
-			end: new Date(`${reservation.date}T${reservation.endTime}`),
-			resource: "reservation",
-		})),
+		...shifts.map((shift) => {
+			const shiftDate = new Date(shift.date);
+
+			const [startHours, startMinutes] = shift.startTime.split(":").map(Number);
+			const [endHours, endMinutes] = shift.endTime.split(":").map(Number);
+
+			const start = new Date(shiftDate);
+			start.setHours(startHours, startMinutes, 0);
+
+			const end = new Date(shiftDate);
+			end.setHours(endHours, endMinutes, 0);
+			return {
+				id: shift.id,
+				title: "Shift",
+				start,
+				end,
+				resource: "shift",
+			};
+		}),
+		...reservations.map((reservation) => {
+			const reservationDate = new Date(reservation.date);
+
+			const [startHours, startMinutes] = reservation.startTime.split(":").map(Number);
+			const [endHours, endMinutes] = reservation.endTime.split(":").map(Number);
+
+			const start = new Date(reservationDate);
+			start.setHours(startHours, startMinutes, 0);
+
+			const end = new Date(reservationDate);
+			end.setHours(endHours, endMinutes, 0);
+			return {
+				id: reservation.id,
+				title: `Appointment: ${reservation.customer.name}`,
+				start: new Date(`${reservation.date}T${reservation.startTime}`),
+				end: new Date(`${reservation.date}T${reservation.endTime}`),
+				resource: "reservation",
+			};
+		}),
 	];
 
 	if (loading) {
-		return (
-			<div className="flex justify-center items-center h-full">
-				<div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-			</div>
-		);
+		return <Spinner />;
 	}
 
 	return (
@@ -101,7 +122,7 @@ const EmployeeSchedule = () => {
 						startAccessor="start"
 						endAccessor="end"
 						eventPropGetter={(event) => ({
-							className: event.resource === "shift" ? "bg-blue-500" : "bg-green-500",
+							className: event.resource === "shift" ? "bg-blue-300" : "bg-green-500",
 						})}
 					/>
 				</div>

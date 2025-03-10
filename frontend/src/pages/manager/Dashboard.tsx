@@ -26,8 +26,6 @@ const Dashboard = () => {
 				// Fetch employees count
 				const employeesResponse = await axios.get(`employees?storeId=${storeId}`);
 
-				console.log("employeesResponse", employeesResponse);
-
 				// Fetch weekly stats
 				const weeklyStatsResponse = await axios.get(
 					`weekly-stats?storeId=${storeId}&date=${currentDate.toISOString()}`

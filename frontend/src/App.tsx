@@ -15,7 +15,8 @@ import Login from "./pages/Login";
 import Header from "./components/Header";
 
 // Context
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { useAuth } from "./contexts/AuthContext";
+import { AuthProvider } from "./contexts/AuthProvider";
 
 // Utils
 import { RoleBasedRenderHash } from "./utils/utils";
@@ -34,7 +35,7 @@ function PrivateRoute({ children, allowedRoles }: PrivateRouteProps) {
 	if (!user) return <Navigate to="/login" replace />;
 
 	if (!allowedRoles.includes(user.role)) {
-		const defaultRoute = RoleBasedRenderHash[user.role]?.route || "/login";
+		const defaultRoute = RoleBasedRenderHash[user.role].route;
 		return <Navigate to={defaultRoute} replace />;
 	}
 
@@ -42,7 +43,6 @@ function PrivateRoute({ children, allowedRoles }: PrivateRouteProps) {
 }
 function AppContent() {
 	const { user } = useAuth();
-
 	const getSidebar = () => (user?.role ? RoleBasedRenderHash[user.role]?.sidebar() || null : null);
 
 	return (

@@ -17,11 +17,13 @@ const weeklyStatsRepository = AppDataSource.getRepository(WeeklyStats);
 
 export const getAllShifts = async (storeId?: string, startDate?: string, endDate?: string, employeeId?: string) => {
 	try {
-		const start = new Date(`${startDate}T00:00:00`); // Local midnight
-		const end = new Date(`${endDate}T23:59:59.999`);
+		// const start = startDate ? new Date(`${startDate}T00:00:00`) : new Date().toISOString(); // Local midnight
+		// const end = endDate ? new Date(`${endDate}T23:59:59.999`) : new Date().toISOString();
+		const start = startDate ? new Date(`${startDate}T00:00:00`) : null;
+		const end = endDate ? new Date(`${endDate}T23:59:59.999`) : null;
 
-		const utcStart = start.toISOString();
-		const utcEnd = end.toISOString();
+		// const utcStart = start.toISOString();
+		// const utcEnd = end.toISOString();
 
 		let query = shiftRepository
 			.createQueryBuilder("shift")
@@ -36,15 +38,21 @@ export const getAllShifts = async (storeId?: string, startDate?: string, endDate
 			query = query.andWhere("employee.id = :employeeId", { employeeId });
 		}
 
-		if (utcStart && utcEnd) {
-			query = query.andWhere("shift.date BETWEEN :utcStart AND :utcEnd", {
-				utcStart,
-				utcEnd,
+		console.log("start", start, end);
+
+		if (start && end) {
+			console.log("IN");
+
+			query = query.andWhere("shift.date BETWEEN :start AND :end", {
+				start,
+				end,
 			});
 		}
 
 		return await query.getMany();
 	} catch (error) {
+		console.log("error", error);
+
 		throw new Error(`Failed to fetch shifts: ${error instanceof Error && error.message}`);
 	}
 };

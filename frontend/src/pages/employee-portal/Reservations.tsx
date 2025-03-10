@@ -26,7 +26,7 @@ const EmployeeReservations = () => {
 	useEffect(() => {
 		const fetchReservations = async () => {
 			try {
-				const response = await axios.get(`/api/reservations?employeeId=${user?.id}`);
+				const response = await axios.get(`reservations?employeeId=${user?.id}`);
 				setReservations(response.data);
 				setLoading(false);
 			} catch (error) {
@@ -42,7 +42,7 @@ const EmployeeReservations = () => {
 
 	const handleStatusUpdate = async (id: string, status: string) => {
 		try {
-			await axios.patch(`/api/reservations/${id}/status`, { status });
+			await axios.patch(`reservations/${id}/status`, { status });
 			setReservations(reservations.map((res) => (res.id === id ? { ...res, status } : res)));
 		} catch (error) {
 			console.error("Error updating reservation status:", error);
