@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Spinner from "../components/Spinner";
 
-const ManagerDashboard = () => {
+const Dashboard = () => {
 	const [stats, setStats] = useState({
 		totalEmployees: 0,
 		weeklyBudget: 0,
@@ -180,4 +180,4 @@ const ManagerDashboard = () => {
 	);
 };
 
-export default ManagerDashboard;
+export default Dashboard;

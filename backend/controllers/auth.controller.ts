@@ -1,3 +1,4 @@
+import * as utils from "../utils/utils";
 import { Request, Response } from "express";
 import { AppDataSource } from "../data-source";
 import { Employee } from "../entities/Employee";
@@ -8,9 +9,19 @@ import jwt from "jsonwebtoken";
 const employeeRepository = AppDataSource.getRepository(Employee);
 const customerRepository = AppDataSource.getRepository(Customer);
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+export const JWT_SECRET = process.env.JWT_SECRET;
 
-export const login = async (req: Request, res: Response) => {
+interface IJwtPayload {
+	id: string;
+	email: string;
+	role: string;
+}
+
+const isEmployee = (role: string) => {
+	return role === "associate" || role === "part_time" || role === "manager";
+};
+
+export const login = utils.asyncMiddleware(async (req: Request, res: Response) => {
 	try {
 		const { email, password } = req.body;
 
@@ -20,15 +31,18 @@ export const login = async (req: Request, res: Response) => {
 			select: ["id", "name", "email", "password", "type"],
 		});
 
-		let role = "employee";
+		let role = "associate";
 
 		// If not an employee, check if customer
 		if (!user) {
-			user = await customerRepository.findOne({
+			const customer = await customerRepository.findOne({
 				where: { email },
-				select: ["id", "name", "email", "password"],
+				select: ["id", "name", "email"],
 			});
-			role = "customer";
+			if (customer) {
+				user = customer as any; // Casting to any to avoid type issues
+				role = "customer";
+			}
 		}
 
 		if (!user) {
@@ -41,11 +55,15 @@ export const login = async (req: Request, res: Response) => {
 			return res.status(401).json({ message: "Invalid credentials" });
 		}
 
+		if (!JWT_SECRET) {
+			throw new Error("Error fetching secret.");
+		}
+
 		const token = jwt.sign(
 			{
 				id: user.id,
 				email: user.email,
-				role: role === "employee" ? user.type : role,
+				role: role === "associate" || role === "part_time" ? user.type : role,
 			},
 			JWT_SECRET,
 			{ expiresIn: "24h" }
@@ -58,16 +76,16 @@ export const login = async (req: Request, res: Response) => {
 			token,
 			user: {
 				...userWithoutPassword,
-				role: role === "employee" ? user.type : role,
+				role: role === "associate" || role === "part_time" ? user.type : role,
 			},
 		});
 	} catch (error) {
 		console.error("Error during login:", error);
 		res.status(500).json({ message: "Internal server error" });
 	}
-};
+});
 
-export const me = async (req: Request, res: Response) => {
+export const me = utils.asyncMiddleware(async (req: Request, res: Response) => {
 	try {
 		const token = req.headers.authorization?.split(" ")[1];
 
@@ -75,11 +93,11 @@ export const me = async (req: Request, res: Response) => {
 			return res.status(401).json({ message: "No token provided" });
 		}
 
-		const decoded = jwt.verify(token, JWT_SECRET) as {
-			id: string;
-			email: string;
-			role: string;
-		};
+		if (!JWT_SECRET) {
+			throw new Error("Error fetching secret.");
+		}
+
+		const decoded = jwt.verify(token, JWT_SECRET) as IJwtPayload;
 
 		let user;
 		if (decoded.role === "customer") {
@@ -98,7 +116,7 @@ export const me = async (req: Request, res: Response) => {
 			return res.status(404).json({ message: "User not found" });
 		}
 
-		res.json({
+		return res.json({
 			...user,
 			role: decoded.role,
 		});
@@ -106,4 +124,4 @@ export const me = async (req: Request, res: Response) => {
 		console.error("Error fetching user:", error);
 		res.status(500).json({ message: "Internal server error" });
 	}
-};
+});

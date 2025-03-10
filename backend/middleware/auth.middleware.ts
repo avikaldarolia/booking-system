@@ -1,3 +1,4 @@
+import * as utils from "../utils/utils";
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
@@ -11,7 +12,7 @@ interface AuthRequest extends Request {
 	};
 }
 
-export const authenticate = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const authenticate = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const token = req.headers.authorization?.split(" ")[1];
 
@@ -30,7 +31,7 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
 	} catch (error) {
 		return res.status(401).json({ message: "Invalid token" });
 	}
-};
+});
 
 export const authorize = (roles: string[]) => {
 	return (req: AuthRequest, res: Response, next: NextFunction) => {

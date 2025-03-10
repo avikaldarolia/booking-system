@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Edit, Filter, Plus, Search, Trash2 } from "lucide-react";
+import { Edit, Eye, EyeOff, Filter, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Spinner from "../components/Spinner";
@@ -22,6 +22,7 @@ const Employees = () => {
 	const [employees, setEmployees] = useState<Employee[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [showAddModal, setShowAddModal] = useState(false);
+	const [showPassword, setShowPassword] = useState(false);
 	const [newEmployee, setNewEmployee] = useState({
 		name: "",
 		email: "",
@@ -46,6 +47,10 @@ const Employees = () => {
 
 		fetchEmployees();
 	}, [storeId]);
+
+	const togglePassword = () => {
+		setShowPassword((prev) => !prev);
+	};
 
 	const handleAddEmployee = async () => {
 		try {
@@ -73,7 +78,7 @@ const Employees = () => {
 		if (window.confirm("Are you sure you want to delete this employee?")) {
 			try {
 				await axios.delete(`employees/${id}`);
-				setEmployees(employees.filter((emp) => emp.id !== id));
+				setEmployees((employees) => employees.filter((emp) => emp.id !== id));
 			} catch (error) {
 				console.error("Error deleting employee:", error);
 			}
@@ -228,6 +233,23 @@ const Employees = () => {
 								value={newEmployee.email}
 								onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
 							/>
+						</div>
+						<div className="mb-4">
+							<label className="block text-gray-700 text-sm font-bold mb-2">Password: 'name'-'email'</label>
+							<div className="flex items-center border border-gray-300 rounded-md px-3 py-2">
+								<input
+									type={showPassword ? "text" : "password"}
+									className="w-full outline-none text-gray-700"
+									value={`${newEmployee.name}-${newEmployee.email}`}
+									readOnly
+								/>
+								<button
+									type="button"
+									onClick={togglePassword}
+									className="ml-2 text-gray-500 hover:text-gray-700 focus:outline-none">
+									{showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+								</button>
+							</div>
 						</div>
 
 						<div className="mb-4">
