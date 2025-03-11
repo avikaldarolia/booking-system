@@ -17,10 +17,6 @@ interface IJwtPayload {
 	role: string;
 }
 
-const isEmployee = (role: string) => {
-	return role === "associate" || role === "part_time" || role === "manager";
-};
-
 export const login = utils.asyncMiddleware(async (req: Request, res: Response) => {
 	try {
 		const { email, password } = req.body;

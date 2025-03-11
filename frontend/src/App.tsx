@@ -24,6 +24,7 @@ import EmployeeAvailability from "./pages/employee-portal/Availability";
 import EmployeeReservations from "./pages/employee-portal/Reservations";
 import EmployeeSchedule from "./pages/employee-portal/Schedule";
 import { User } from "./types";
+import Reservations from "./pages/manager/Reservations";
 
 interface PrivateRouteProps {
 	children: React.ReactNode;
@@ -67,6 +68,7 @@ function AppContent() {
 										<Route path="employee/:id" element={<EmployeeDetail />} />
 										<Route path="schedule" element={<Schedule />} />
 										<Route path="weekly-stats" element={<WeeklyStats />} />
+										<Route path="reservations" element={<Reservations />} />
 										<Route path="settings" element={<Settings />} />
 										<Route path="*" element={<Navigate to="/manager-portal/" replace />} />
 									</Routes>

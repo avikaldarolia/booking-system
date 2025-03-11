@@ -72,7 +72,12 @@ export const CreateEmployee = async (data: {
 
 		// REMOVE PASSWORD BEFORE SEDNING IT BACK.
 		const newEmployee = employeeRepository.create({ ...data, store });
-		return await employeeRepository.save(newEmployee);
+
+		// Remove password
+		await employeeRepository.save(newEmployee);
+		const { password: _, ...emp } = newEmployee;
+
+		return emp;
 	} catch (error) {
 		console.error("Error creating employee:", error);
 		throw new Error("Failed to create employee.");
