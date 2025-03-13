@@ -40,7 +40,7 @@ export const calculateShiftHours = (startTime: string, endTime: string): number 
  * Helper function to calculate shift cost.
  */
 export const calculateShiftCost = (hours: number, hourlyRate: number): number => {
-	return hours * hourlyRate;
+	return Number(hours) * Number(hourlyRate);
 };
 
 export const getStartDate = (date: Date) => {

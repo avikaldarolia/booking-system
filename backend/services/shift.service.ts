@@ -38,11 +38,7 @@ export const getAllShifts = async (storeId?: string, startDate?: string, endDate
 			query = query.andWhere("employee.id = :employeeId", { employeeId });
 		}
 
-		console.log("start", start, end);
-
 		if (start && end) {
-			console.log("IN");
-
 			query = query.andWhere("shift.date BETWEEN :start AND :end", {
 				start,
 				end,
@@ -99,7 +95,7 @@ export const createShift = async (data: {
 		}
 
 		// Fetch employee
-		const employee = await queryRunner.manager.getRepository(Employee).findOne({ where: { id: employeeId } });
+		const employee: Employee = await queryRunner.manager.getRepository(Employee).findOne({ where: { id: employeeId } });
 
 		// Check if employee is available
 		const availability = await queryRunner.manager.getRepository(Availability).findOne({
@@ -113,13 +109,13 @@ export const createShift = async (data: {
 		const cost = calculateShiftCost(hours, employee.hourlyRate);
 
 		// Check if shift exceeds max hours
-		if (employee.currentHours + hours > employee.maxHours) {
+		if (Number(employee.currentHours) + Number(hours) > Number(employee.maxHours)) {
 			throw new Error("This shift would exceed employee's maximum hours");
 		}
 
 		// Fetch or create WeeklyStats
 		const weeklyStats = await getOrCreateWeeklyStats(queryRunner, storeId, shiftDate, store.weeklyBudget);
-		if (weeklyStats.totalCost + cost > weeklyStats.budgetAllocated) {
+		if (Number(weeklyStats.totalCost) + cost > Number(weeklyStats.budgetAllocated)) {
 			throw new Error("This shift would exceed the weekly budget");
 		}
 
@@ -137,13 +133,13 @@ export const createShift = async (data: {
 		});
 
 		// Sync with Google Calendar if published
-		if (isPublished) {
-			const eventId = await syncShiftWithGoogleCalendar(newShift).catch((error) => {
-				console.error("Google Calendar sync failed:", error);
-				throw new Error(`Cannot sync with Google Calendar: ${error.message}`);
-			});
-			if (eventId) newShift.googleCalendarEventId = eventId;
-		}
+		// if (isPublished) {
+		// 	const eventId = await syncShiftWithGoogleCalendar(newShift).catch((error) => {
+		// 		console.error("Google Calendar sync failed:", error);
+		// 		throw new Error(`Cannot sync with Google Calendar: ${error.message}`);
+		// 	});
+		// 	if (eventId) newShift.googleCalendarEventId = eventId;
+		// }
 
 		await queryRunner.manager.getRepository(Shift).save(newShift);
 
@@ -159,7 +155,7 @@ export const createShift = async (data: {
  * Updates employee's current hours.
  */
 const updateEmployeeHours = async (queryRunner: any, employee: Employee, hours: number) => {
-	employee.currentHours += Number(hours);
+	employee.currentHours = Number(employee.currentHours) + Number(hours);
 	await queryRunner.manager.getRepository(Employee).save(employee);
 };
 

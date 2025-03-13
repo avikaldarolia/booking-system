@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			localStorage.setItem("authToken", token);
 			axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 			setUser(user);
-			const defaultRoute = RoleBasedRenderHash[user.role]?.route || "/login";
+			const defaultRoute = RoleBasedRenderHash[user.role]?.route || "/employee-login";
 			navigate(defaultRoute);
 		} catch (error) {
 			console.log("error", error);

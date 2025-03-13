@@ -11,7 +11,7 @@ const ManagerSidebar = () => {
 
 			<nav className="flex-1 px-2 py-4">
 				<NavLink
-					to="/manager-portal/"
+					to="/manager-portal"
 					end
 					className={({ isActive }) =>
 						`flex items-center px-4 py-2 mt-2 rounded-md ${
@@ -46,6 +46,7 @@ const ManagerSidebar = () => {
 
 				<NavLink
 					to="manager-portal/reservations"
+					end
 					className={({ isActive }) =>
 						`flex items-center px-4 py-2 mt-2 rounded-md ${
 							isActive ? "bg-gray-700 text-white" : "text-gray-300 hover:bg-gray-700"
@@ -56,7 +57,7 @@ const ManagerSidebar = () => {
 				</NavLink>
 
 				<NavLink
-					to="/weekly-stats"
+					to="manager-portal/weekly-stats"
 					className={({ isActive }) =>
 						`flex items-center px-4 py-2 mt-2 rounded-md ${
 							isActive ? "bg-gray-700 text-white" : "text-gray-300 hover:bg-gray-700"
