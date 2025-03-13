@@ -7,7 +7,7 @@ import HeroSection from "./HeroSection";
 import ServicesList from "./ServiceList";
 import EmployeeList from "./EmployeeList";
 import BookingCalendar from "./BookingCalendar";
-import { Service, Employee } from "../../../types";
+import { Service, Employee, Customer } from "../../../types";
 import CustomerHeader from "../../../components/CustomerHeader";
 
 const services: Service[] = [
@@ -79,14 +79,18 @@ const BookingFlow: React.FC = () => {
 		}
 	};
 
-	const handleBookAppointment = async (selectedSlot: string, notes: string, selectedDate: Date) => {
+	const handleBookAppointment = async (selectedSlot: string, notes: string, selectedDate: Date, customer: Customer) => {
 		if (!selectedEmployee || !selectedSlot || !selectedDate) return;
+
 		try {
 			await axios.post("reservations", {
 				employeeId: selectedEmployee.id,
 				date: format(selectedDate, "yyyy-MM-dd"),
 				startTime: selectedSlot,
 				duration: selectedService?.duration.split(" ")[0],
+				email: customer.email,
+				phone: customer.phoneNumber,
+				name: customer.name || "",
 				notes,
 			});
 			alert("Appointment booked successfully!");

@@ -57,3 +57,9 @@ export interface TimeSlot {
 	endTime: string;
 	available: boolean;
 }
+
+export interface Customer {
+	email: string;
+	phoneNumber: string;
+	name?: string;
+}

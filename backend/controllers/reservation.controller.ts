@@ -24,42 +24,6 @@ export const getAvailableDates = utils.asyncMiddleware(async (req: Request, res:
 	}
 });
 
-export const getAllReservations = async (req: Request, res: Response) => {
-	try {
-		const { employeeId, customerId, startDate, endDate, status } = req.query;
-
-		let query = reservationRepository
-			.createQueryBuilder("reservation")
-			.leftJoinAndSelect("reservation.employee", "employee")
-			.leftJoinAndSelect("reservation.customer", "customer");
-
-		if (employeeId) {
-			query = query.andWhere("employee.id = :employeeId", { employeeId });
-		}
-
-		if (customerId) {
-			query = query.andWhere("customer.id = :customerId", { customerId });
-		}
-
-		if (startDate && endDate) {
-			query = query.andWhere("reservation.date BETWEEN :startDate AND :endDate", {
-				startDate,
-				endDate,
-			});
-		}
-
-		if (status) {
-			query = query.andWhere("reservation.status = :status", { status });
-		}
-
-		const reservations = await query.getMany();
-		return res.status(200).json(reservations);
-	} catch (error) {
-		console.error("Error fetching reservations:", error);
-		return res.status(500).json({ message: "Internal server error" });
-	}
-};
-
 export const getReservationById = async (req: Request, res: Response) => {
 	try {
 		const { id } = req.params;
@@ -79,58 +43,52 @@ export const getReservationById = async (req: Request, res: Response) => {
 	}
 };
 
-export const createReservation = async (req: Request, res: Response) => {
+export const createReservation = utils.asyncMiddleware(async (req: Request, res: Response) => {
 	try {
-		const { employeeId, customerId, date, startTime, endTime, duration, notes } = req.body;
+		const { employeeId, name, email, phone, date, startTime, duration, notes } = req.body;
 
-		// Check if employee exists
-		const employee = await employeeRepository.findOne({ where: { id: employeeId } });
-		if (!employee) {
-			return res.status(404).json({ message: "Employee not found" });
-		}
-
-		// Check if customer exists
-		const customer = await customerRepository.findOne({ where: { id: customerId } });
-		if (!customer) {
-			return res.status(404).json({ message: "Customer not found" });
-		}
-
-		// Check if employee is available
-		const reservationDate = new Date(date);
-		const existingReservation = await reservationRepository.findOne({
-			where: {
-				employee: { id: employeeId },
-				date: reservationDate,
-				startTime: LessThanOrEqual(endTime),
-				endTime: MoreThanOrEqual(startTime),
-				status: ReservationStatus.CONFIRMED,
-			},
-		});
-
-		if (existingReservation) {
-			return res.status(400).json({
-				message: "Employee is not available at this time",
-			});
-		}
-
-		const newReservation = reservationRepository.create({
-			employee,
-			customer,
-			date: reservationDate,
+		const reservation = await ReservationService.CreateReservation(
+			employeeId,
+			name,
+			email,
+			phone,
+			date,
 			startTime,
-			endTime,
 			duration,
-			notes,
-			status: ReservationStatus.CONFIRMED,
-		});
+			notes
+		);
 
-		await reservationRepository.save(newReservation);
-		return res.status(201).json(newReservation);
+		return res.status(201).json(reservation);
 	} catch (error) {
 		console.error("Error creating reservation:", error);
 		return res.status(500).json({ message: "Internal server error" });
 	}
-};
+});
+
+export const getAllReservations = utils.asyncMiddleware(async (req: Request, res: Response) => {
+	try {
+		const { employeeId, customerId, startDate, endDate, status } = req.query;
+		const user = req.user;
+
+		if (!user || !user.role) {
+			return res.status(401).json({ message: "Unauthorized: User not authenticated" });
+		}
+
+		const reservations = await ReservationService.GetReservations(
+			employeeId as string,
+			customerId as string,
+			user,
+			startDate as string,
+			endDate as string,
+			status as ReservationStatus
+		);
+
+		return res.status(200).json(reservations);
+	} catch (error) {
+		console.error("Error fetching reservations:", error);
+		return res.status(500).json({ message: "Internal server error" });
+	}
+});
 
 export const updateReservationStatus = async (req: Request, res: Response) => {
 	try {
