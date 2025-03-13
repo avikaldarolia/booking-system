@@ -33,11 +33,14 @@ export const authenticate = utils.asyncMiddleware(async (req: Request, res: Resp
 	}
 });
 
-export const authorize = (roles: string[]) => {
-	return (req: AuthRequest, res: Response, next: NextFunction) => {
-		if (!req.user || !roles.includes(req.user.role)) {
-			return res.status(403).json({ message: "Unauthorized" });
+export const authorize = (roles: string[]) =>
+	utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
+		try {
+			if (!req.user || !roles.includes(req.user.role)) {
+				return res.status(403).json({ message: "Unauthorized" });
+			}
+			next();
+		} catch (error) {
+			return res.status(500).json({ message: "Authorization error" });
 		}
-		next();
-	};
-};
+	});

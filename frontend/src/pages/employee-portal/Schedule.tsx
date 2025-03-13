@@ -31,26 +31,42 @@ const EmployeeSchedule = () => {
 	};
 	useEffect(() => {
 		const fetchSchedule = async () => {
-			try {
-				const [shiftsRes, reservationsRes, availabilityRes] = await Promise.all([
-					axios.get(`shifts?employeeId=${user?.id}`),
-					axios.get(`reservations?employeeId=${user?.id}`),
-					axios.get(`availability/employee/${user?.id}`),
-				]);
-
-				setShifts(shiftsRes.data);
-				setReservations(reservationsRes.data);
-				setAvailabilities(availabilityRes.data);
+			if (!user?.id) {
 				setLoading(false);
+				return;
+			}
+			const endpoints = {
+				shifts: `shifts?employeeId=${user.id}`,
+				availabilities: `availability/employee/${user.id}`,
+				reservations: `reservations?employeeId=${user.id}`,
+			};
+
+			try {
+				const results = await await Promise.allSettled(Object.entries(endpoints).map(([, url]) => axios.get(url)));
+
+				const stateSetters = {
+					shifts: setShifts,
+					availabilities: setAvailabilities,
+					reservations: setReservations,
+				};
+
+				Object.keys(endpoints).forEach((key, index) => {
+					const result = results[index];
+					if (result.status === "fulfilled") {
+						stateSetters[key as keyof typeof stateSetters](result.value.data);
+					} else {
+						console.error(`Error fetching ${key}:`, result.reason);
+					}
+				});
 			} catch (error) {
 				console.error("Error fetching schedule:", error);
+				setLoading(false);
+			} finally {
 				setLoading(false);
 			}
 		};
 
-		if (user?.id) {
-			fetchSchedule();
-		}
+		fetchSchedule();
 	}, [user]);
 
 	const events = [

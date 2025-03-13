@@ -1,3 +1,4 @@
+import * as utils from "../utils/utils";
 import { Request, Response } from "express";
 import { AppDataSource } from "../data-source";
 import { Reservation, ReservationStatus } from "../entities/Reservation";
@@ -5,10 +6,23 @@ import { Employee } from "../entities/Employee";
 import { Customer } from "../entities/Customer";
 import { Between, LessThanOrEqual, MoreThanOrEqual } from "typeorm";
 import { startOfDay, endOfDay, parseISO, format } from "date-fns";
+import * as ReservationService from "../services/reservation.service";
 
 const reservationRepository = AppDataSource.getRepository(Reservation);
 const employeeRepository = AppDataSource.getRepository(Employee);
 const customerRepository = AppDataSource.getRepository(Customer);
+
+export const getAvailableDates = utils.asyncMiddleware(async (req: Request, res: Response) => {
+	try {
+		const { employeeId, storeId } = req.query;
+		const dates = await ReservationService.GetAvailableDates(employeeId as string, storeId as string);
+
+		return res.status(200).json(dates);
+	} catch (error: any) {
+		console.error("Controller error fetching shifts:", error);
+		return res.status(500).json({ message: error.message || "Internal server error" });
+	}
+});
 
 export const getAllReservations = async (req: Request, res: Response) => {
 	try {
@@ -161,72 +175,10 @@ export const cancelReservation = async (req: Request, res: Response) => {
 		return res.status(500).json({ message: "Internal server error" });
 	}
 };
-
-export const getAvailableSlots = async (req: Request, res: Response) => {
+export const getAvailableSlots = utils.asyncMiddleware(async (req: Request, res: Response) => {
 	try {
-		const { employeeId, date, duration } = req.query;
-
-		const employee = await employeeRepository.findOne({
-			where: { id: employeeId as string },
-			relations: ["store"],
-		});
-
-		if (!employee) {
-			return res.status(404).json({ message: "Employee not found" });
-		}
-
-		const targetDate = parseISO(date as string);
-
-		// Get existing reservations for the day
-		const existingReservations = await reservationRepository.find({
-			where: {
-				employee: { id: employeeId as string },
-				date: Between(startOfDay(targetDate), endOfDay(targetDate)),
-				status: ReservationStatus.CONFIRMED,
-			},
-			order: { startTime: "ASC" },
-		});
-
-		// Generate available time slots
-		const slots = [];
-		const slotDuration = parseInt(duration as string) || 60; // Default to 60 minutes
-
-		const [storeOpenHour, storeOpenMinute] = employee.store.openTime.split(":").map(Number);
-		const [storeCloseHour, storeCloseMinute] = employee.store.closeTime.split(":").map(Number);
-
-		let currentSlot = new Date(targetDate);
-		currentSlot.setHours(storeOpenHour, storeOpenMinute, 0);
-
-		const endTime = new Date(targetDate);
-		endTime.setHours(storeCloseHour, storeCloseMinute, 0);
-
-		while (currentSlot < endTime) {
-			const slotEnd = new Date(currentSlot);
-			slotEnd.setMinutes(slotEnd.getMinutes() + slotDuration);
-
-			if (slotEnd > endTime) break;
-
-			const isAvailable = !existingReservations.some((reservation) => {
-				const reservationStart = new Date(`${reservation.date}T${reservation.startTime}`);
-				const reservationEnd = new Date(`${reservation.date}T${reservation.endTime}`);
-				return (
-					(currentSlot >= reservationStart && currentSlot < reservationEnd) ||
-					(slotEnd > reservationStart && slotEnd <= reservationEnd)
-				);
-			});
-
-			slots.push({
-				startTime: format(currentSlot, "HH:mm"),
-				endTime: format(slotEnd, "HH:mm"),
-				available: isAvailable,
-			});
-
-			currentSlot = slotEnd;
-		}
-
+		const { employeeId, date } = req.query;
+		const slots = await ReservationService.GetAvailableSlotsOnDate(employeeId as string, date as string);
 		return res.status(200).json(slots);
-	} catch (error) {
-		console.error("Error fetching available slots:", error);
-		return res.status(500).json({ message: "Internal server error" });
-	}
-};
+	} catch (error) {}
+});

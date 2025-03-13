@@ -3,6 +3,7 @@ import axios from "axios";
 import { Calendar, Search, Filter, Check, X } from "lucide-react";
 // import { Calendar, Clock, User, Search, Filter, Check, X } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import Spinner from "../../components/Spinner";
 
 interface Reservation {
 	id: string;
@@ -67,11 +68,7 @@ const Reservations = () => {
 	);
 
 	if (loading) {
-		return (
-			<div className="flex justify-center items-center h-full">
-				<div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-			</div>
-		);
+		return <Spinner />;
 	}
 
 	return (

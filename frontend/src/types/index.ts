@@ -27,10 +27,33 @@ export interface Reservation {
 	customer: {
 		name: string;
 		email: string;
+		phone: string;
 	};
 	date: string;
 	startTime: string;
 	endTime: string;
 	status: string;
 	notes: string;
+}
+
+export interface Service {
+	name: string;
+	price: number;
+	duration: string;
+	description: string;
+}
+
+export interface Employee {
+	id: string;
+	name: string;
+	specialties: string;
+	imageUrl: string;
+	hourlyRate: number;
+	rating: number;
+}
+
+export interface TimeSlot {
+	startTime: string;
+	endTime: string;
+	available: boolean;
 }

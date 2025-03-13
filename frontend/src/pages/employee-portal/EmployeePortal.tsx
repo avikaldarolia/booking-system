@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-// import { Calendar, Clock, User, CalendarCheck } from "lucide-react";
 import { Calendar, Clock, CalendarCheck } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { useAuth } from "../../contexts/AuthContext";
 import { Availability, Reservation, Shift } from "../../types";
+import Spinner from "../../components/Spinner";
 
 const EmployeePortal = () => {
 	const { user } = useAuth();
@@ -15,36 +15,47 @@ const EmployeePortal = () => {
 
 	useEffect(() => {
 		const fetchEmployeeData = async () => {
-			try {
-				const [shiftsRes, availabilitiesRes, reservationsRes] = await Promise.all([
-					axios.get(`shifts?employeeId=${user?.id}`),
-					axios.get(`availability/employee/${user?.id}`),
-					axios.get(`reservations?employeeId=${user?.id}`),
-				]);
-
-				setShifts(shiftsRes.data);
-				setAvailabilities(availabilitiesRes.data);
-				setReservations(reservationsRes.data);
+			if (!user?.id) {
 				setLoading(false);
-			} catch (error) {
-				console.error("Error fetching employee data:", error);
-				// set mock data
+				return;
+			}
 
+			const endpoints = {
+				shifts: `shifts?employeeId=${user.id}`,
+				availabilities: `availability/employee/${user.id}`,
+				reservations: `reservations?employeeId=${user.id}`,
+			};
+
+			try {
+				const results = await Promise.allSettled(Object.entries(endpoints).map(([, url]) => axios.get(url)));
+
+				const stateSetters = {
+					shifts: setShifts,
+					availabilities: setAvailabilities,
+					reservations: setReservations,
+				};
+
+				Object.keys(endpoints).forEach((key, index) => {
+					const result = results[index];
+
+					if (result.status === "fulfilled") {
+						stateSetters[key as keyof typeof stateSetters](result.value.data);
+					} else {
+						console.error(`Error fetching ${key}:`, result.reason);
+					}
+				});
+			} catch (error) {
+				console.error("Unexpected error:", error);
+			} finally {
 				setLoading(false);
 			}
 		};
 
-		if (user?.id) {
-			fetchEmployeeData();
-		}
+		fetchEmployeeData();
 	}, [user]);
 
 	if (loading) {
-		return (
-			<div className="flex justify-center items-center h-full">
-				<div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-			</div>
-		);
+		return <Spinner />;
 	}
 
 	return (

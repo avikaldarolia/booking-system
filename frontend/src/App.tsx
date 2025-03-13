@@ -25,6 +25,8 @@ import EmployeeReservations from "./pages/employee-portal/Reservations";
 import EmployeeSchedule from "./pages/employee-portal/Schedule";
 import { User } from "./types";
 import Reservations from "./pages/manager/Reservations";
+import BookingFlow from "./pages/customer/booking/BookingFlow";
+import CustomerLogin from "./pages/customer/CustomerLogin";
 
 interface PrivateRouteProps {
 	children: React.ReactNode;
@@ -33,7 +35,7 @@ interface PrivateRouteProps {
 }
 
 function PrivateRoute({ user, children, allowedRoles }: PrivateRouteProps) {
-	if (!user) return <Navigate to="/login" replace />;
+	if (!user) return <Navigate to="/employee-login" replace />;
 
 	if (!allowedRoles.includes(user.role)) {
 		const defaultRoute = RoleBasedRenderHash[user.role].route;
@@ -54,7 +56,9 @@ function AppContent() {
 				<main className="flex-1 overflow-y-auto p-4">
 					<Routes>
 						{/* Public Routes */}
-						<Route path="/login" element={<Login />} />
+						<Route path="/employee-login" element={<Login />} />
+						<Route path="/login" element={<CustomerLogin />} />
+						<Route path="/book" element={<BookingFlow />} />
 						<Route path="/book/:employeeId" element={<CustomerBooking />} />
 
 						{/* Manager Routes */}
@@ -106,7 +110,7 @@ function AppContent() {
 						{/* Catch-all for unauthorized users */}
 						<Route
 							path="*"
-							element={<Navigate to={user ? RoleBasedRenderHash[user.role].route : "/login"} replace />}
+							element={<Navigate to={user ? RoleBasedRenderHash[user.role].route : "/employee-login"} replace />}
 						/>
 					</Routes>
 				</main>
