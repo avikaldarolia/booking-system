@@ -8,7 +8,6 @@ import ServicesList from "./ServiceList";
 import EmployeeList from "./EmployeeList";
 import BookingCalendar from "./BookingCalendar";
 import { Service, Employee, Customer } from "../../../types";
-import CustomerHeader from "../../../components/CustomerHeader";
 
 const services: Service[] = [
 	{
@@ -103,36 +102,43 @@ const BookingFlow = () => {
 		}
 	};
 
-	if (loading) return <Spinner />;
+	if (loading) {
+		return <Spinner />;
+	}
 
 	return (
-		<div className="flex flex-col min-h-screen bg-white">
-			<CustomerHeader />
-			{/* Hero section & services list */}
-			{!selectedService && step === 1 && (
-				<>
+		<div className="min-h-screen flex flex-col bg-gray-50">
+			{/* Hero Section & Services List */}
+			{step === 1 && !selectedService && (
+				<div className="space-y-12">
 					<HeroSection />
-					<ServicesList services={services} onSelectService={handleServiceSelect} />
-				</>
+					<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+						<ServicesList services={services} onSelectService={handleServiceSelect} />
+					</div>
+				</div>
 			)}
 
-			{/* Main content wrapper */}
-			<main className="flex-1 py-16 px-4 max-w-7xl mx-auto">
+			{/* Main Content */}
+			<main className="flex-1 py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
 				{step === 2 && selectedService && (
-					<EmployeeList
-						employees={employees}
-						selectedService={selectedService.name}
-						onSelectEmployee={handleEmployeeSelect}
-						onBack={handleBack}
-					/>
+					<div className="bg-gray-100 shadow-md rounded-xl p-6 transition-all duration-300">
+						<EmployeeList
+							employees={employees}
+							selectedService={selectedService.name}
+							onSelectEmployee={handleEmployeeSelect}
+							onBack={handleBack}
+						/>
+					</div>
 				)}
 				{step === 3 && selectedEmployee && selectedService && (
-					<BookingCalendar
-						selectedEmployee={selectedEmployee}
-						selectedDuration={parseInt(selectedService.duration.split(" ")[0])}
-						onBack={handleBack}
-						onBookAppointment={handleBookAppointment}
-					/>
+					<div className="bg-gray-100 shadow-md rounded-xl p-6 transition-all duration-300">
+						<BookingCalendar
+							selectedEmployee={selectedEmployee}
+							selectedDuration={parseInt(selectedService.duration.split(" ")[0])}
+							onBack={handleBack}
+							onBookAppointment={handleBookAppointment}
+						/>
+					</div>
 				)}
 			</main>
 

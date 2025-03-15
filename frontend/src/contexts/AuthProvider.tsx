@@ -67,7 +67,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const logout = () => {
 		localStorage.removeItem("authToken");
 		delete axios.defaults.headers.common["Authorization"];
+		setLoading(false);
 		setUser(null);
+		navigate("/book");
 	};
 
 	return <AuthContext.Provider value={{ user, login, logout, loading }}>{children}</AuthContext.Provider>;
