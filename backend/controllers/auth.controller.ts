@@ -9,7 +9,7 @@ import jwt from "jsonwebtoken";
 const employeeRepository = AppDataSource.getRepository(Employee);
 const customerRepository = AppDataSource.getRepository(Customer);
 
-export const JWT_SECRET = process.env.JWT_SECRET;
+export const JWT_SECRET = process.env.JWT_SECRET || "";
 
 interface IJwtPayload {
 	id: string;
@@ -27,20 +27,6 @@ export const login = utils.asyncMiddleware(async (req: Request, res: Response) =
 			select: ["id", "name", "email", "password", "type"],
 		});
 
-		let role = "associate";
-
-		// If not an employee, check if customer
-		if (!user) {
-			const customer = await customerRepository.findOne({
-				where: { email },
-				select: ["id", "name", "email"],
-			});
-			if (customer) {
-				user = customer as any; // Casting to any to avoid type issues
-				role = "customer";
-			}
-		}
-
 		if (!user) {
 			return res.status(401).json({ message: "Invalid credentials" });
 		}
@@ -55,6 +41,8 @@ export const login = utils.asyncMiddleware(async (req: Request, res: Response) =
 			throw new Error("Error fetching secret.");
 		}
 
+		let role = "associate";
+
 		const token = jwt.sign(
 			{
 				id: user.id,
@@ -68,7 +56,7 @@ export const login = utils.asyncMiddleware(async (req: Request, res: Response) =
 		// Remove password from response
 		const { password: _, ...userWithoutPassword } = user;
 
-		res.json({
+		return res.json({
 			token,
 			user: {
 				...userWithoutPassword,
@@ -77,7 +65,7 @@ export const login = utils.asyncMiddleware(async (req: Request, res: Response) =
 		});
 	} catch (error) {
 		console.error("Error during login:", error);
-		res.status(500).json({ message: "Internal server error" });
+		return res.status(500).json({ message: error instanceof Error ? error.message : "Internal server error" });
 	}
 });
 
@@ -99,7 +87,7 @@ export const me = utils.asyncMiddleware(async (req: Request, res: Response) => {
 		if (decoded.role === "customer") {
 			user = await customerRepository.findOne({
 				where: { id: decoded.id },
-				select: ["id", "name", "email"],
+				select: ["id", "name", "email", "phone"],
 			});
 		} else {
 			user = await employeeRepository.findOne({
@@ -118,6 +106,37 @@ export const me = utils.asyncMiddleware(async (req: Request, res: Response) => {
 		});
 	} catch (error) {
 		console.error("Error fetching user:", error);
-		res.status(500).json({ message: "Internal server error" });
+		return res.status(500).json({ message: error instanceof Error ? error.message : "Internal server error" });
+	}
+});
+
+export const customerLogin = utils.asyncMiddleware(async (req: Request, res: Response) => {
+	try {
+		const { email, phone } = req.body;
+		const customer = await customerRepository.findOne({ where: { email, phone } });
+
+		if (!customer) {
+			throw new Error("Invalid Credentials.");
+		}
+
+		const role = "customer";
+
+		const token = jwt.sign(
+			{
+				id: customer.id,
+				email: customer.email,
+				role,
+			},
+			JWT_SECRET,
+			{ expiresIn: "24h" }
+		);
+
+		return res.json({
+			token,
+			customer: { ...customer, role },
+		});
+	} catch (error) {
+		console.error("Error during login:", error);
+		return res.status(500).json({ message: error instanceof Error ? error.message : "Internal server error" });
 	}
 });

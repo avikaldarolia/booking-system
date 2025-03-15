@@ -1,3 +1,4 @@
+import axios from "axios";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -6,12 +7,17 @@ const CustomerLogin: React.FC = () => {
 	const [phone, setPhone] = useState("");
 	const navigate = useNavigate();
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		// API call
-		return;
 		if (email && phone) {
-			navigate("/customer-portal");
+			const res = await axios.post("/auth/customer/login", {
+				email,
+				phone,
+			});
+
+			if (res.data) {
+				navigate("/customer-portal");
+			}
 		}
 	};
 
