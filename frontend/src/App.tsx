@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Route, Navigate, Routes } from "react-router-dom";
 
 import Dashboard from "./pages/manager/Dashboard";
 import Employees from "./pages/manager/Employees";
@@ -6,7 +6,6 @@ import Schedule from "./pages/manager/Schedule";
 import Settings from "./pages/manager/Settings";
 import EmployeeDetail from "./pages/manager/EmployeeDetail";
 import WeeklyStats from "./pages/manager/WeeklyStats";
-import CustomerBooking from "./pages/customer/CustomerBooking";
 import EmployeePortal from "./pages/employee-portal/EmployeePortal";
 import CustomerPortal from "./pages/customer/CustomerPortal";
 import Login from "./pages/Login";
@@ -27,6 +26,7 @@ import { User } from "./types";
 import Reservations from "./pages/manager/Reservations";
 import BookingFlow from "./pages/customer/booking/BookingFlow";
 import CustomerLogin from "./pages/customer/CustomerLogin";
+import Spinner from "./components/Spinner";
 
 interface PrivateRouteProps {
 	children: React.ReactNode;
@@ -45,8 +45,13 @@ function PrivateRoute({ user, children, allowedRoles }: PrivateRouteProps) {
 	return children;
 }
 function AppContent() {
-	const { user }: { user: User | null } = useAuth();
-	const sidebar = user?.role ? RoleBasedRenderHash[user.role]?.sidebar() : null;
+	const { user, loading }: { user: User | null; loading: boolean } = useAuth();
+	const sidebar =
+		user?.role && RoleBasedRenderHash[user.role].sidebar() ? RoleBasedRenderHash[user.role].sidebar() : null;
+
+	if (loading) {
+		return <Spinner />;
+	}
 
 	return (
 		<div className="flex h-screen bg-gray-100">
@@ -59,7 +64,6 @@ function AppContent() {
 						<Route path="/employee-login" element={<Login />} />
 						<Route path="/login" element={<CustomerLogin />} />
 						<Route path="/book" element={<BookingFlow />} />
-						<Route path="/book/:employeeId" element={<CustomerBooking />} />
 
 						{/* Manager Routes */}
 						<Route

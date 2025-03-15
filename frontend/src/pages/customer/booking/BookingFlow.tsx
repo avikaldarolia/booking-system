@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { format } from "date-fns";
 import Spinner from "../../../components/Spinner";
@@ -37,7 +37,7 @@ const services: Service[] = [
 	},
 ];
 
-const BookingFlow: React.FC = () => {
+const BookingFlow = () => {
 	const [step, setStep] = useState(1);
 	const [employees, setEmployees] = useState<Employee[]>([]);
 	const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
