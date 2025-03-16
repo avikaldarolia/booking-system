@@ -12,6 +12,8 @@ const shiftRepository = AppDataSource.getRepository(Shift);
 const employeeRepository = AppDataSource.getRepository(Employee);
 const customerRepository = AppDataSource.getRepository(Customer);
 
+const DEFAULT_DURATION = 60;
+
 interface AuthenticatedUser {
 	id: string;
 	role: "manager" | "part_time" | "associate" | "customer";
@@ -49,7 +51,7 @@ export const CreateReservation = async (
 		let customer = await customerRepository.findOne({ where: { email, phone } });
 
 		const startDateTime = new Date(`${date}T${startTime}:00`);
-		const durationMinutes = parseInt(duration, 10);
+		const durationMinutes = parseInt(duration ?? DEFAULT_DURATION, 10);
 
 		const endDateTime = add(startDateTime, { minutes: durationMinutes });
 		const endTime = format(endDateTime, "HH:mm");

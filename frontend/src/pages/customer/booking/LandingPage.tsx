@@ -21,10 +21,8 @@ const LandingPage = () => {
 		<div className="min-h-screen flex flex-col bg-gray-50">
 			{/* Hero Section */}
 			<HeroSection />
-
 			{/* Booking Process Component */}
 			<BookingProcess services={Services} />
-
 			{/* Footer */}
 			<Footer />
 		</div>

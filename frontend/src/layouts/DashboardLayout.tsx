@@ -13,7 +13,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
 		user?.role && RoleBasedRenderHash[user.role].sidebar() ? RoleBasedRenderHash[user.role].sidebar() : null;
 
 	return (
-		<div className="flex h-screen bg-gray-100">
+		<div className="flex h-screen bg-gray-200">
 			{user && sidebar}
 			<div className="flex-1 flex flex-col overflow-hidden">
 				{user && <Header />}

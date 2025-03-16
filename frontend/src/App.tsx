@@ -64,11 +64,11 @@ function AppRoutes() {
 		<Routes>
 			{/* Public Routes (Only for Logged-Out Users) */}
 			<Route element={<PublicLayout />}>
-				<Route path="/employee-login" element={<Login />} />
 				<Route path="/login" element={<CustomerLogin />} />
 				<Route path="/book" element={<LandingPage />} />
 			</Route>
 
+			<Route path="/employee-login" element={<Login />} />
 			{/* Manager Routes */}
 			<Route
 				path="/manager-portal/*"
