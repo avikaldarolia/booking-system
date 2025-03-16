@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { ChevronLeft } from "lucide-react";
 import { Customer, Employee, Shift, TimeSlot } from "../../../types";
 import CalendarComponent from "../../../components/CustomCalendar";
+import { formatPhoneNumber } from "../../../utils/utils";
 
 interface BookingCalendarProps {
 	selectedEmployee: Employee;
@@ -93,16 +94,6 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
 		setCustomerName("");
 		setSelectedSlot(null);
 		setNotes("");
-	};
-
-	// Phone number formatting function
-	const formatPhoneNumber = (value: string) => {
-		// Remove all non-digit characters
-		const digits = value.replace(/\D/g, "");
-		// Apply formatting based on length
-		if (digits.length <= 3) return digits;
-		if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-		return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
 	};
 
 	const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {

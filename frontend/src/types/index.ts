@@ -3,6 +3,7 @@ export interface User {
 	name: string;
 	email: string;
 	role: "manager" | "associate" | "part_time" | "customer";
+	phone?: string;
 }
 
 export interface Shift {
@@ -28,6 +29,11 @@ export interface Reservation {
 		name: string;
 		email: string;
 		phone: string;
+	};
+	employee: {
+		id: string;
+		name: string;
+		imageUrl: string;
 	};
 	date: string;
 	startTime: string;

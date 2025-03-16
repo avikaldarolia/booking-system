@@ -9,7 +9,7 @@ interface ServicesListProps {
 
 const ServicesList: React.FC<ServicesListProps> = ({ services, onSelectService }) => {
 	return (
-		<div className="py-16 max-w-7xl mx-auto px-4">
+		<div className="bg-gray-100 p-6 transition-all duration-300">
 			<h2 className="text-3xl font-bold text-center mb-12 text-gray-800">Our Services</h2>
 			<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
 				{services.map((service, index) => (

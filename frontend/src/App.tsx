@@ -10,7 +10,7 @@ import DashboardLayout from "./layouts/DashboardLayout";
 // Public Pages
 import Login from "./pages/Login";
 import CustomerLogin from "./pages/customer/CustomerLogin";
-import BookingFlow from "./pages/customer/booking/BookingFlow";
+import LandingPage from "./pages/customer/booking/LandingPage";
 
 // Manager Pages
 import Dashboard from "./pages/manager/Dashboard";
@@ -31,6 +31,9 @@ import EmployeeSchedule from "./pages/employee-portal/Schedule";
 import CustomerPortal from "./pages/customer/CustomerPortal";
 import { User } from "./types";
 import Spinner from "./components/Spinner";
+import BookingProcess from "./pages/customer/booking/BookingProcess";
+import Services from "./data/Services";
+import CustomerAppointments from "./pages/customer/CustomerAppointments";
 
 interface PrivateRouteProps {
 	children: React.ReactNode;
@@ -63,7 +66,7 @@ function AppRoutes() {
 			<Route element={<PublicLayout />}>
 				<Route path="/employee-login" element={<Login />} />
 				<Route path="/login" element={<CustomerLogin />} />
-				<Route path="/book" element={<BookingFlow />} />
+				<Route path="/book" element={<LandingPage />} />
 			</Route>
 
 			{/* Manager Routes */}
@@ -111,7 +114,12 @@ function AppRoutes() {
 				element={
 					<PrivateRoute user={user} allowedRoles={["customer"]}>
 						<DashboardLayout>
-							<CustomerPortal />
+							<Routes>
+								<Route path="" element={<CustomerPortal />} />
+								<Route path="/book" element={<BookingProcess services={Services} />} />
+								<Route path="/appointments" element={<CustomerAppointments />} />
+								<Route path="*" element={<Navigate to="/customer-portal/" replace />} />
+							</Routes>
 						</DashboardLayout>
 					</PrivateRoute>
 				}

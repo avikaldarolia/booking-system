@@ -2,41 +2,17 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { format } from "date-fns";
 import Spinner from "../../../components/Spinner";
-import Footer from "../../../components/Footer";
-import HeroSection from "./HeroSection";
-import ServicesList from "./ServiceList";
 import EmployeeList from "./EmployeeList";
 import BookingCalendar from "./BookingCalendar";
 import { Service, Employee, Customer } from "../../../types";
+import ServicesList from "./ServiceList";
 
-const services: Service[] = [
-	{
-		name: "Haircut & Styling",
-		price: 45,
-		duration: "45 min",
-		description: "Professional haircut and styling tailored to your preferences",
-	},
-	{
-		name: "Color & Highlights",
-		price: 85,
-		duration: "120 min",
-		description: "Full color or highlights using premium products",
-	},
-	{
-		name: "Blowout & Treatment",
-		price: 55,
-		duration: "60 min",
-		description: "Luxurious hair treatment with professional blowout",
-	},
-	{
-		name: "Special Occasion",
-		price: 75,
-		duration: "90 min",
-		description: "Elegant styling for weddings, events, and special occasions",
-	},
-];
+interface BookingProcessProps {
+	services: Service[];
+	onBookingSuccess?: () => void;
+}
 
-const BookingFlow = () => {
+const BookingProcess = ({ services, onBookingSuccess }: BookingProcessProps) => {
 	const [step, setStep] = useState(1);
 	const [employees, setEmployees] = useState<Employee[]>([]);
 	const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
@@ -96,6 +72,7 @@ const BookingFlow = () => {
 			setStep(1);
 			setSelectedEmployee(null);
 			setSelectedService(null);
+			if (onBookingSuccess) onBookingSuccess();
 		} catch (error) {
 			console.error("Error booking appointment:", error);
 			alert("Failed to book appointment. Please try again.");
@@ -107,44 +84,35 @@ const BookingFlow = () => {
 	}
 
 	return (
-		<div className="min-h-screen flex flex-col bg-gray-50">
-			{/* Hero Section & Services List */}
-			{step === 1 && !selectedService && (
-				<div className="space-y-12">
-					<HeroSection />
-					<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-						<ServicesList services={services} onSelectService={handleServiceSelect} />
-					</div>
+		<main className="flex-1 py-3 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+			{/* Step 1: Service Selection */}
+			{step === 1 && <ServicesList services={services} onSelectService={handleServiceSelect} />}
+
+			{/* Step 2: Employee Selection */}
+			{step === 2 && selectedService && (
+				<div className="bg-gray-100 rounded-xl p-6 transition-all duration-300">
+					<EmployeeList
+						employees={employees}
+						selectedService={selectedService.name}
+						onSelectEmployee={handleEmployeeSelect}
+						onBack={handleBack}
+					/>
 				</div>
 			)}
 
-			{/* Main Content */}
-			<main className="flex-1 py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
-				{step === 2 && selectedService && (
-					<div className="bg-gray-100 shadow-md rounded-xl p-6 transition-all duration-300">
-						<EmployeeList
-							employees={employees}
-							selectedService={selectedService.name}
-							onSelectEmployee={handleEmployeeSelect}
-							onBack={handleBack}
-						/>
-					</div>
-				)}
-				{step === 3 && selectedEmployee && selectedService && (
-					<div className="bg-gray-100 shadow-md rounded-xl p-6 transition-all duration-300">
-						<BookingCalendar
-							selectedEmployee={selectedEmployee}
-							selectedDuration={parseInt(selectedService.duration.split(" ")[0])}
-							onBack={handleBack}
-							onBookAppointment={handleBookAppointment}
-						/>
-					</div>
-				)}
-			</main>
-
-			<Footer />
-		</div>
+			{/* Step 3: Booking Calendar */}
+			{step === 3 && selectedEmployee && selectedService && (
+				<div className="bg-gray-100 rounded-xl p-6 transition-all duration-300">
+					<BookingCalendar
+						selectedEmployee={selectedEmployee}
+						selectedDuration={parseInt(selectedService.duration.split(" ")[0])}
+						onBack={handleBack}
+						onBookAppointment={handleBookAppointment}
+					/>
+				</div>
+			)}
+		</main>
 	);
 };
 
-export default BookingFlow;
+export default BookingProcess;
