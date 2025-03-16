@@ -6,7 +6,7 @@ const EmployeeSidebar = () => {
 	const { logout } = useAuth();
 
 	return (
-		<div className="bg-gray-800 text-white w-64 flex flex-col h-full">
+		<div className="bg-black text-white w-64 flex flex-col h-full">
 			<div className="p-4 flex items-center space-x-2">
 				<Calendar className="h-8 w-8 text-blue-400" />
 				<h1 className="text-xl font-bold">Employee Portal</h1>
@@ -18,7 +18,7 @@ const EmployeeSidebar = () => {
 					end
 					className={({ isActive }) =>
 						`flex items-center px-4 py-2 mt-2 rounded-md ${
-							isActive ? "bg-gray-700 text-white" : "text-gray-300 hover:bg-gray-700"
+							isActive ? "bg-white text-black" : " text-gray-300 hover:bg-gray-700"
 						}`
 					}>
 					<User className="h-5 w-5 mr-3" />
@@ -29,7 +29,7 @@ const EmployeeSidebar = () => {
 					to="/employee-portal/schedule"
 					className={({ isActive }) =>
 						`flex items-center px-4 py-2 mt-2 rounded-md ${
-							isActive ? "bg-gray-700 text-white" : "text-gray-300 hover:bg-gray-700"
+							isActive ? "bg-white text-black" : "text-gray-300 hover:bg-gray-700"
 						}`
 					}>
 					<Calendar className="h-5 w-5 mr-3" />
@@ -40,7 +40,7 @@ const EmployeeSidebar = () => {
 					to="/employee-portal/availability"
 					className={({ isActive }) =>
 						`flex items-center px-4 py-2 mt-2 rounded-md ${
-							isActive ? "bg-gray-700 text-white" : "text-gray-300 hover:bg-gray-700"
+							isActive ? "bg-white text-black" : "text-gray-300 hover:bg-gray-700"
 						}`
 					}>
 					<Clock className="h-5 w-5 mr-3" />
@@ -51,7 +51,7 @@ const EmployeeSidebar = () => {
 					to="/employee-portal/reservations"
 					className={({ isActive }) =>
 						`flex items-center px-4 py-2 mt-2 rounded-md ${
-							isActive ? "bg-gray-700 text-white" : "text-gray-300 hover:bg-gray-700"
+							isActive ? "bg-white text-black" : "text-gray-300 hover:bg-gray-700"
 						}`
 					}>
 					<CalendarCheck className="h-5 w-5 mr-3" />

@@ -18,7 +18,7 @@ const CustomerSidebar = () => {
 					end
 					className={({ isActive }) =>
 						`flex items-center px-4 py-2 mt-2 rounded-md ${
-							isActive ? "bg-gray-700 text-white" : "text-gray-300 hover:bg-gray-700"
+							isActive ? "bg-white text-black" : "text-gray-300 hover:bg-gray-700"
 						}`
 					}>
 					<User className="h-5 w-5 mr-3" />
@@ -29,7 +29,7 @@ const CustomerSidebar = () => {
 					to="/customer-portal/book"
 					className={({ isActive }) =>
 						`flex items-center px-4 py-2 mt-2 rounded-md ${
-							isActive ? "bg-gray-700 text-white" : "text-gray-300 hover:bg-gray-700"
+							isActive ? "bg-white text-black" : "text-gray-300 hover:bg-gray-700"
 						}`
 					}>
 					<Calendar className="h-5 w-5 mr-3" />
@@ -40,7 +40,7 @@ const CustomerSidebar = () => {
 					to="/customer-portal/appointments"
 					className={({ isActive }) =>
 						`flex items-center px-4 py-2 mt-2 rounded-md ${
-							isActive ? "bg-gray-700 text-white" : "text-gray-300 hover:bg-gray-700"
+							isActive ? "bg-white text-black" : "text-gray-300 hover:bg-gray-700"
 						}`
 					}>
 					<CalendarCheck className="h-5 w-5 mr-3" />
