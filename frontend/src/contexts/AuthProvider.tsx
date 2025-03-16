@@ -3,13 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { RoleBasedRenderHash } from "../utils/utils";
 import { AuthContext } from "./AuthContext"; // Import from the new file
-
-interface User {
-	id: string;
-	name: string;
-	email: string;
-	role: "manager" | "associate" | "part_time" | "customer";
-}
+import { User } from "../types";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const [user, setUser] = useState<User | null>(null);
@@ -48,10 +42,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		}
 	};
 
-	const login = async (email: string, password: string) => {
+	const login = async (email: string, password: string, phone?: string) => {
 		try {
-			const response = await axios.post("auth/login", { email, password });
-			const { token, user }: { token: string; user: User } = response.data;
+			let response, user;
+			let token = "";
+
+			if (phone) {
+				response = await axios.post("auth/customer/login", { email, phone });
+				token = response.data.token;
+				user = response.data.customer as User;
+			} else {
+				response = await axios.post("auth/login", { email, password });
+				token = response.data.token;
+				user = response.data.user as User;
+			}
 
 			localStorage.setItem("authToken", token);
 			axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -67,7 +71,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const logout = () => {
 		localStorage.removeItem("authToken");
 		delete axios.defaults.headers.common["Authorization"];
+		setLoading(false);
 		setUser(null);
+		navigate("/book");
 	};
 
 	return <AuthContext.Provider value={{ user, login, logout, loading }}>{children}</AuthContext.Provider>;

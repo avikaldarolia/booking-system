@@ -50,12 +50,8 @@ export class Reservation extends BaseEntity {
 	@Column("time")
 	endTime: string;
 
-	@Column({
-		type: "enum",
-		enum: ReservationDuration,
-		default: ReservationDuration.ONE_HOUR,
-	})
-	duration: ReservationDuration;
+	@Column("int")
+	duration: number;
 
 	@Column({
 		type: "enum",

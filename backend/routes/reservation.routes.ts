@@ -8,22 +8,24 @@ import {
 	getAvailableSlots,
 	getAvailableDates,
 } from "../controllers/reservation.controller";
-// import { authenticate, authorize } from "../middleware/auth.middleware";
+import { authenticate, authorize } from "../middleware/auth.middleware";
 
 const router = Router();
+
+router.post("/", createReservation);
 
 router.get("/dates", getAvailableDates);
 router.get("/slots", getAvailableSlots);
 
 // // Protected routes
-// router.use(authenticate);
+router.use(authenticate);
 
-// Routes accessible by all authenticated users
+router.get("/", authorize(["customer", "manager", "associate", "part_time"]), getAllReservations);
+
 // router.get("/slots", getAvailableSlots);
 // router.get("/:id", getReservationById);
 
 // // Routes for managers and employees
-// router.get("/", getAllReservations);
 
 // // Routes for customers
 // router.post("/", authorize(["customer"]), createReservation);
