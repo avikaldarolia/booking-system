@@ -3,12 +3,13 @@ import HeroSection from "./HeroSection";
 import BookingProcess from "./BookingProcess";
 import Services from "../../../data/Services";
 import { useAuth } from "../../../contexts/AuthContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { RoleBasedRenderHash } from "../../../utils/utils";
 
 const LandingPage = () => {
 	const { user } = useAuth();
+	const [isBookingActive, setIsBookingActive] = useState(false);
 	const navigate = useNavigate();
 	useEffect(() => {
 		if (!user) {
@@ -19,10 +20,12 @@ const LandingPage = () => {
 	}, [navigate, user]);
 	return (
 		<div className="min-h-screen flex flex-col bg-gray-50">
-			{/* Hero Section */}
-			<HeroSection />
-			{/* Booking Process Component */}
-			<BookingProcess services={Services} />
+			{/* Show Hero Section only if booking is NOT active */}
+			{!isBookingActive && <HeroSection onBookNow={() => setIsBookingActive(true)} />}
+
+			{/* Booking Process */}
+			{isBookingActive && <BookingProcess services={Services} />}
+
 			{/* Footer */}
 			<Footer />
 		</div>
