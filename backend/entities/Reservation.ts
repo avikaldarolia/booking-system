@@ -32,13 +32,13 @@ export class Reservation extends BaseEntity {
 	@RelationId((reservation: Reservation) => reservation.employee)
 	employeeId: string;
 
-	@ManyToOne(() => Employee, (employee) => employee.reservations)
+	@ManyToOne(() => Employee, (employee) => employee.reservations, { onDelete: "CASCADE" })
 	employee: Employee;
 
 	@RelationId((reservation: Reservation) => reservation.customer)
 	customerId: string;
 
-	@ManyToOne(() => Customer, (customer) => customer.reservations)
+	@ManyToOne(() => Customer, (customer) => customer.reservations, { onDelete: "CASCADE" })
 	customer: Customer;
 
 	@Column("date")

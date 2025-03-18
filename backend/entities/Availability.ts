@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, BaseEntity, RelationId } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, RelationId } from "typeorm";
 import { Employee } from "./Employee";
+import { BaseEntity } from "../types/base-entity";
 
 @Entity()
 export class Availability extends BaseEntity {

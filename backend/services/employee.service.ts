@@ -106,16 +106,16 @@ export const UpdateEmployee = async (id: string, data: Partial<Employee>) => {
 	}
 };
 
-// DELETE: Availability and shifts first.
 export const DeleteEmployee = async (id: string) => {
 	try {
 		const employee = await employeeRepository.findOne({ where: { id } });
+		console.log(employee);
 
 		if (!employee) {
 			throw new Error(`Employee with id ${id} not found.`);
 		}
 
-		await employeeRepository.remove(employee);
+		await employeeRepository.softRemove(employee);
 		return { message: "Employee deleted successfully." };
 	} catch (error) {
 		console.error(`Error deleting employee with id: ${id}`, error);

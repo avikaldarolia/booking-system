@@ -1,15 +1,7 @@
-import {
-	Entity,
-	PrimaryGeneratedColumn,
-	Column,
-	ManyToOne,
-	CreateDateColumn,
-	UpdateDateColumn,
-	BaseEntity,
-	RelationId,
-} from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, RelationId } from "typeorm";
 import { Employee } from "./Employee";
 import { Store } from "./Store";
+import { BaseEntity } from "../types/base-entity";
 
 @Entity()
 export class Shift extends BaseEntity {
@@ -19,7 +11,7 @@ export class Shift extends BaseEntity {
 	@RelationId((shift: Shift) => shift.employee)
 	employeeId: string;
 
-	@ManyToOne(() => Employee, (employee) => employee.shifts)
+	@ManyToOne(() => Employee, (employee) => employee.shifts, { onDelete: "CASCADE", cascade: ["soft-remove"] })
 	employee: Employee;
 
 	@RelationId((shift: Shift) => shift.store)

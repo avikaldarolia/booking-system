@@ -16,6 +16,9 @@ export class Customer extends BaseEntity {
 	@Column({ type: "text" })
 	phone: string;
 
-	@OneToMany(() => Reservation, (reservation) => reservation.customer)
+	@OneToMany(() => Reservation, (reservation) => reservation.customer, {
+		onDelete: "CASCADE",
+		cascade: ["soft-remove"],
+	})
 	reservations: Reservation[];
 }

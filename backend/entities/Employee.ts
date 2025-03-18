@@ -23,8 +23,7 @@ export class Employee extends BaseEntity {
 	@Column({ type: "text" })
 	email: string;
 
-	// REMOVE NULL
-	@Column({ type: "text", select: false, nullable: true })
+	@Column({ type: "text", select: false })
 	password: string;
 
 	@Column({
@@ -58,13 +57,19 @@ export class Employee extends BaseEntity {
 	@ManyToOne(() => Store, (store) => store.employees)
 	store: Store;
 
-	@OneToMany(() => Availability, (availability) => availability.employee)
+	@OneToMany(() => Availability, (availability) => availability.employee, {
+		onDelete: "CASCADE",
+		cascade: ["soft-remove"],
+	})
 	availabilities: Availability[];
 
-	@OneToMany(() => Shift, (shift) => shift.employee)
+	@OneToMany(() => Shift, (shift) => shift.employee, { onDelete: "CASCADE", cascade: ["soft-remove"] })
 	shifts: Shift[];
 
-	@OneToMany(() => Reservation, (reservation) => reservation.employee)
+	@OneToMany(() => Reservation, (reservation) => reservation.employee, {
+		onDelete: "CASCADE",
+		cascade: ["soft-remove"],
+	})
 	reservations: Reservation[];
 
 	@BeforeInsert()
