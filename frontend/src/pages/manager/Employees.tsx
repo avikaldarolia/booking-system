@@ -30,6 +30,7 @@ const Employees = () => {
 		maxHours: DEFAULT_MAX_HOURS,
 		hourlyRate: BASE_PAY,
 	});
+	const [errorMessage, setErrorMessage] = useState<string | null>(null); // Add error state
 	const [searchTerm, setSearchTerm] = useState("");
 	const [filterType, setFilterType] = useState("all");
 	const storeId = import.meta.env.VITE_STORE_ID;
@@ -38,10 +39,11 @@ const Employees = () => {
 		const fetchEmployees = async () => {
 			try {
 				const response = await axios.get(`employees?storeId=${storeId}`);
-				setEmployees(response.data);
+				setEmployees(response.data.data);
 				setLoading(false);
 			} catch (error) {
 				console.log(error);
+				setLoading(false); // Ensure loading stops even on error
 			}
 		};
 
@@ -53,24 +55,35 @@ const Employees = () => {
 	};
 
 	const handleAddEmployee = async () => {
+		setErrorMessage(null); // Clear previous errors
 		try {
 			const response = await axios.post("employees", {
 				...newEmployee,
 				storeId,
 			});
 
-			setEmployees([...employees, response.data]);
-			setShowAddModal(false);
-			setNewEmployee({
-				name: "",
-				email: "",
-				type: DEFAULT_EMP_TYPE,
-				maxHours: DEFAULT_MAX_HOURS,
-				hourlyRate: BASE_PAY,
-			});
-		} catch (error) {
+			console.log("RES: ", response.data);
+
+			if (response.data.success) {
+				setEmployees([...employees, response.data.data]);
+				setShowAddModal(false);
+				setNewEmployee({
+					name: "",
+					email: "",
+					type: DEFAULT_EMP_TYPE,
+					maxHours: DEFAULT_MAX_HOURS,
+					hourlyRate: BASE_PAY,
+				});
+			} else {
+				setErrorMessage(response.data.error); // Set error message from backend
+			}
+		} catch (error: any) {
 			console.error("Error adding employee:", error);
-			setShowAddModal(false);
+			if (error.response?.data?.error) {
+				setErrorMessage(error.response.data.error); // Backend-specific error
+			} else {
+				setErrorMessage("An unexpected error occurred. Please try again."); // Fallback
+			}
 		}
 	};
 
@@ -96,6 +109,7 @@ const Employees = () => {
 	if (loading) {
 		return <Spinner />;
 	}
+
 	return (
 		<div className="container mx-auto px-4 py-6">
 			<div className="flex justify-between items-center mb-6">
@@ -214,6 +228,9 @@ const Employees = () => {
 				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 					<div className="bg-white rounded-lg p-6 w-full max-w-md">
 						<h2 className="text-xl font-bold mb-4">Add New Employee</h2>
+
+						{/* Display error message */}
+						{errorMessage && <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-md">{errorMessage}</div>}
 
 						<div className="mb-4">
 							<label className="block text-gray-700 text-sm font-bold mb-2">Name</label>

@@ -1,38 +1,31 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import * as EmployeeService from "../services/employee.service";
 import * as utils from "../utils/utils";
 
-export const getAllEmployees = utils.asyncMiddleware(async (req: Request, res: Response) => {
+export const getAllEmployees = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const employees = await EmployeeService.GetAllEmployees(req.query.storeId as string);
-		return res.status(200).json(employees);
+		return utils.sendResponse(req, res, employees.success, employees.data, employees.err);
 	} catch (error) {
-		console.error("Error in getAllEmployees:", error);
-		return res.status(500).json({ message: error instanceof Error ? error.message : "Internal server error" });
+		next(error);
 	}
 });
 
-export const getEmployeeById = utils.asyncMiddleware(async (req: Request, res: Response) => {
+export const getEmployeeById = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const employee = await EmployeeService.GetEmployeeById(req.params.id);
-		if (!employee) {
-			return res.status(404).json({ message: "Employee not found" });
-		}
-
-		return res.status(200).json(employee);
+		const employee = await EmployeeService.GetEmployeeById(req.params.id, req.query.storeId as string);
+		return utils.sendResponse(req, res, employee.success, employee.data, employee.err);
 	} catch (error) {
-		console.error("Error in getEmployeeId:", error);
-		return res.status(500).json({ message: error instanceof Error ? error.message : "Internal server error" });
+		next(error);
 	}
 });
 
-export const createEmployee = utils.asyncMiddleware(async (req: Request, res: Response) => {
+export const createEmployee = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const newEmployee = await EmployeeService.CreateEmployee(req.body);
-		return res.status(201).json(newEmployee);
+		return utils.sendResponse(req, res, newEmployee.success, newEmployee.data, newEmployee.err);
 	} catch (error) {
-		console.error("Error in createEmployee:", error);
-		return res.status(500).json({ message: error instanceof Error ? error.message : "Internal server error" });
+		next(error);
 	}
 });
 

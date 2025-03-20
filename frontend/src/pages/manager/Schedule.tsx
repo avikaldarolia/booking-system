@@ -21,9 +21,9 @@ interface Employee {
 interface Shift {
 	id: string;
 	employee: Employee;
-	date: string;
-	startTime: string;
-	endTime: string;
+	date: string; // "yyyy-MM-dd"
+	startTime: string; // "HH:mm"
+	endTime: string; // "HH:mm"
 	hours: number;
 	cost: number;
 	note: string;
@@ -32,8 +32,8 @@ interface Shift {
 
 interface WeeklyStats {
 	id: string;
-	weekStartDate: string;
-	weekEndDate: string;
+	weekStartDate: string; // "yyyy-MM-dd"
+	weekEndDate: string; // "yyyy-MM-dd"
 	totalHours: number;
 	totalCost: number;
 	budgetAllocated: number;
@@ -49,7 +49,7 @@ const Schedule = () => {
 	const [showAddShift, setShowAddShift] = useState(false);
 	const [newShift, setNewShift] = useState({
 		employeeId: "",
-		date: new Date().toISOString(),
+		date: format(new Date(), "yyyy-MM-dd"), // Initialize as "yyyy-MM-dd"
 		startTime: "09:00",
 		endTime: "17:00",
 		note: "",
@@ -57,37 +57,44 @@ const Schedule = () => {
 	const [errors, setErrors] = useState<{ [key: string]: string }>({});
 	const [submissionError, setSubmissionError] = useState<string | null>(null);
 
-	const weekStart = startOfWeek(currentDate);
-	const weekEnd = endOfWeek(currentDate);
 	const storeId = import.meta.env.VITE_STORE_ID;
+
+	// Week start (Monday) and end (Sunday)
+	const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+	const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
+
 	useEffect(() => {
 		const fetchScheduleData = async () => {
+			setLoading(true);
 			try {
-				// Format dates for API requests
-				const weekStart = format(startOfWeek(currentDate), "yyyy-MM-dd");
-				const weekEnd = format(endOfWeek(currentDate), "yyyy-MM-dd");
-				const currentDateStr = format(currentDate, "yyyy-MM-dd");
+				const weekStartStr = format(weekStart, "yyyy-MM-dd");
+				const weekEndStr = format(weekEnd, "yyyy-MM-dd");
 
 				// Fetch employees
 				const employeesResponse = await axios.get(`employees?storeId=${storeId}`);
-				setEmployees(employeesResponse.data);
+				setEmployees(employeesResponse.data.data);
 
 				// Fetch shifts for the week
-				const shiftsResponse = await axios.get(`shifts?storeId=${storeId}&startDate=${weekStart}&endDate=${weekEnd}`);
-				setShifts(shiftsResponse.data);
+				const shiftsResponse = await axios.get(
+					`shifts?storeId=${storeId}&startDate=${weekStartStr}&endDate=${weekEndStr}`
+				);
+				setShifts(shiftsResponse.data.data);
 
 				// Fetch weekly stats
-				const weeklyStatsResponse = await axios.get(`weekly-stats?storeId=${storeId}&date=${currentDateStr}`);
-				setWeeklyStats(weeklyStatsResponse.data);
+				// const weeklyStatsResponse = await axios.get(
+				// 	`weekly-stats?storeId=${storeId}&date=${format(currentDate, "yyyy-MM-dd")}`
+				// );
+				// setWeeklyStats(weeklyStatsResponse.data.data);
 
 				setLoading(false);
 			} catch (error) {
-				console.log(error);
+				console.error("Error fetching schedule data:", error);
+				setLoading(false);
 			}
 		};
 
 		fetchScheduleData();
-	}, [currentDate, storeId]);
+	}, []);
 
 	const handlePreviousWeek = () => {
 		setCurrentDate(subWeeks(currentDate, 1));
@@ -107,10 +114,10 @@ const Schedule = () => {
 		if (newShift.startTime >= newShift.endTime) {
 			newErrors.endTime = "End time must be after start time";
 		}
-
-		if (newShift.date < new Date().toISOString().split("T")[0]) {
+		if (newShift.date < format(new Date(), "yyyy-MM-dd")) {
 			newErrors.date = "Cannot schedule shifts in the past. Please select a future date.";
 		}
+
 		setErrors(newErrors);
 		return Object.keys(newErrors).length === 0;
 	};
@@ -120,38 +127,42 @@ const Schedule = () => {
 
 		setSubmissionError(null);
 		try {
-			const shiftDateTime = new Date(`${newShift.date}T${newShift.startTime}:00`).toISOString();
 			const response = await axios.post("shifts", {
 				...newShift,
 				storeId,
 				isPublished: true,
-				date: shiftDateTime,
+				date: newShift.date, // Send as "yyyy-MM-dd"
 			});
 
-			setShifts([...shifts, response.data]);
+			if (!response.data.success) {
+				setSubmissionError(response.data.error);
+				return;
+			}
+
+			setShifts([...shifts, response.data.data]);
 			setShowAddShift(false);
 			setNewShift({
 				employeeId: "",
-				date: new Date().toISOString().split("T")[0],
+				date: format(new Date(), "yyyy-MM-dd"),
 				startTime: "09:00",
 				endTime: "17:00",
 				note: "",
 			});
 
 			// Refresh weekly stats
-			const weeklyStatsResponse = await axios.get(
-				`weekly-stats?storeId=${storeId}&date=${format(currentDate, "yyyy-MM-dd")}`
-			);
-			setWeeklyStats(weeklyStatsResponse.data);
+			// const weeklyStatsResponse = await axios.get(
+			// 	`weekly-stats?storeId=${storeId}&date=${format(currentDate, "yyyy-MM-dd")}`
+			// );
+			// setWeeklyStats(weeklyStatsResponse.data.data);
 
-			// Refresh employees to get updated hours
+			// Refresh employees
 			const employeesResponse = await axios.get(`employees?storeId=${storeId}`);
-			setEmployees(employeesResponse.data);
+			setEmployees(employeesResponse.data.data);
 		} catch (error) {
 			console.error("Error adding shift:", error);
 			const errorMessage =
-				axios.isAxiosError(error) && error.response?.data?.message
-					? error.response.data.message
+				axios.isAxiosError(error) && error.response?.data?.error
+					? error.response.data.error
 					: "An error occurred while adding the shift";
 			setSubmissionError(errorMessage);
 		}
@@ -164,24 +175,22 @@ const Schedule = () => {
 				setShifts(shifts.filter((shift) => shift.id !== id));
 
 				// Refresh weekly stats
-				const weeklyStatsResponse = await axios.get(
-					`weekly-stats?storeId=${storeId}&date=${format(currentDate, "yyyy-MM-dd")}`
-				);
-				setWeeklyStats(weeklyStatsResponse.data);
+				// const weeklyStatsResponse = await axios.get(
+				// 	`weekly-stats?storeId=${storeId}&date=${format(currentDate, "yyyy-MM-dd")}`
+				// );
+				// setWeeklyStats(weeklyStatsResponse.data.data);
 
-				// Refresh employees to get updated hours
+				// Refresh employees
 				const employeesResponse = await axios.get(`employees?storeId=${storeId}`);
-				setEmployees(employeesResponse.data);
+				setEmployees(employeesResponse.data.data);
 			} catch (error) {
 				console.error("Error deleting shift:", error);
 			}
 		}
 	};
 
-	// Convert shifts to events for BigCalendar
-	const events = shifts.map((shift) => {
-		const shiftDate = new Date(shift.date);
-
+	const events = shifts?.map((shift) => {
+		const shiftDate = new Date(shift.date); // Parse "yyyy-MM-dd"
 		const [startHours, startMinutes] = shift.startTime.split(":").map(Number);
 		const [endHours, endMinutes] = shift.endTime.split(":").map(Number);
 
@@ -199,6 +208,8 @@ const Schedule = () => {
 			resource: shift,
 		};
 	});
+
+	console.log("shifts", shifts);
 
 	if (loading) {
 		return <Spinner />;
@@ -250,7 +261,6 @@ const Schedule = () => {
 										: event.resource.employee.type === "associate"
 										? "#3B82F6" // Blue for associates
 										: "#10B981"; // Green for part-time
-
 								return { style: { backgroundColor } };
 							}}
 							components={{
@@ -275,7 +285,7 @@ const Schedule = () => {
 				<div className="space-y-6">
 					<div className="bg-white rounded-lg shadow p-4">
 						<h2 className="text-lg font-semibold mb-4">Weekly Stats</h2>
-						{weeklyStats && (
+						{weeklyStats ? (
 							<>
 								<div className="mb-4">
 									<div className="flex justify-between mb-1">
@@ -289,7 +299,9 @@ const Schedule = () => {
 											className={`h-2.5 rounded-full ${
 												weeklyStats.totalCost / weeklyStats.budgetAllocated > 0.8 ? "bg-red-500" : "bg-blue-500"
 											}`}
-											style={{ width: `${(weeklyStats.totalCost / weeklyStats.budgetAllocated) * 100}%` }}></div>
+											style={{
+												width: `${Math.min((weeklyStats.totalCost / weeklyStats.budgetAllocated) * 100, 100)}%`,
+											}}></div>
 									</div>
 								</div>
 
@@ -301,7 +313,6 @@ const Schedule = () => {
 											<p className="font-semibold">${weeklyStats.budgetAllocated}</p>
 										</div>
 									</div>
-
 									<div className="flex items-center">
 										<DollarSign className="h-5 w-5 text-red-500 mr-2" />
 										<div>
@@ -309,7 +320,6 @@ const Schedule = () => {
 											<p className="font-semibold">${weeklyStats.totalCost}</p>
 										</div>
 									</div>
-
 									<div className="flex items-center">
 										<DollarSign className="h-5 w-5 text-blue-500 mr-2" />
 										<div>
@@ -317,7 +327,6 @@ const Schedule = () => {
 											<p className="font-semibold">${weeklyStats.budgetRemaining}</p>
 										</div>
 									</div>
-
 									<div className="flex items-center">
 										<Clock className="h-5 w-5 text-purple-500 mr-2" />
 										<div>
@@ -327,6 +336,8 @@ const Schedule = () => {
 									</div>
 								</div>
 							</>
+						) : (
+							<p className="text-gray-500">No stats available</p>
 						)}
 					</div>
 
@@ -346,7 +357,9 @@ const Schedule = () => {
 											className={`h-2.5 rounded-full ${
 												employee.currentHours / employee.maxHours > 0.8 ? "bg-red-500" : "bg-blue-500"
 											}`}
-											style={{ width: `${(employee.currentHours / employee.maxHours) * 100}%` }}></div>
+											style={{
+												width: `${Math.min((employee.currentHours / employee.maxHours) * 100, 100)}%`,
+											}}></div>
 									</div>
 								</div>
 							))}

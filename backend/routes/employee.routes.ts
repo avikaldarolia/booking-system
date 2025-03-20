@@ -13,11 +13,12 @@ const router = Router();
 
 // Public routes
 router.get("/", getAllEmployees);
+router.get("/:id", getEmployeeById);
 
 // Protected routes
 router.use(authenticate);
 
-router.get("/:id", getEmployeeById);
+// router.get("/:id", getEmployeeById);
 router.post("/", authorize(["manager"]), createEmployee);
 router.put("/:id", authorize(["manager"]), updateEmployee);
 router.delete("/:id", authorize(["manager"]), deleteEmployee);

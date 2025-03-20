@@ -1,5 +1,4 @@
-// shift.controller.ts
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import * as utils from "../utils/utils";
 import * as ShiftService from "../services/shift.service";
 
@@ -32,25 +31,26 @@ export const getShiftById = utils.asyncMiddleware(async (req: Request, res: Resp
 	}
 });
 
-export const createShift = utils.asyncMiddleware(async (req: Request, res: Response) => {
+export const createShift = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const shift = await ShiftService.createShift(req.body);
 		return res.status(201).json(shift);
-	} catch (error: any) {
-		console.error("Controller error creating shift:", error);
-		const status: { [key: string]: number } = {
-			"Employee not found": 404,
-			"Store not found": 404,
-			"Employee has blocked this date for availability": 400,
-			"This shift would exceed employee's maximum hours": 400,
-			"This shift would exceed the weekly budget": 400,
-		};
+	} catch (error) {
+		next(error);
+		// console.error("Controller error creating shift:", error);
+		// const status: { [key: string]: number } = {
+		// 	"Employee not found": 404,
+		// 	"Store not found": 404,
+		// 	"Employee has blocked this date for availability": 400,
+		// 	"This shift would exceed employee's maximum hours": 400,
+		// 	"This shift would exceed the weekly budget": 400,
+		// };
 
-		const errorStatus = status[error.message] || 500;
+		// const errorStatus = status[error.message] || 500;
 
-		return res.status(errorStatus).json({
-			message: error.message || "Internal server error",
-		});
+		// return res.status(errorStatus).json({
+		// 	message: error.message || "Internal server error",
+		// });
 	}
 });
 

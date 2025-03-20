@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, RelationId } from "t
 import { Employee } from "./Employee";
 import { Store } from "./Store";
 import { BaseEntity } from "../types/base-entity";
+import { Week } from "./Week";
 
 @Entity()
 export class Shift extends BaseEntity {
@@ -20,7 +21,7 @@ export class Shift extends BaseEntity {
 	@ManyToOne(() => Store)
 	store: Store;
 
-	@Column({ type: "timestamp" })
+	@Column({ type: "date" })
 	date: Date;
 
 	@Column("time")
@@ -32,14 +33,20 @@ export class Shift extends BaseEntity {
 	@Column("decimal")
 	hours: number;
 
+	@RelationId((shift: Shift) => shift.week)
+	weekId: string;
+
+	@ManyToOne(() => Week)
+	week: Week;
+
 	@Column("decimal")
 	cost: number;
 
 	@Column("text", { nullable: true })
 	note: string;
 
-	@Column("boolean", { default: false })
-	isPublished: boolean;
+	// @Column("boolean", { default: false })
+	// isPublished: boolean;
 
 	@Column("text", { nullable: true })
 	googleCalendarEventId: string;

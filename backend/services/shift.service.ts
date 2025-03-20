@@ -1,3 +1,4 @@
+import { WeeklyStats } from "./../entities/WeeklyStats";
 import { AppDataSource } from "../data-source";
 import { Shift } from "../entities/Shift";
 import { Employee } from "../entities/Employee";
@@ -5,9 +6,10 @@ import { Store } from "../entities/Store";
 import { Availability } from "../entities/Availability";
 import { WeeklyStats } from "../entities/WeeklyStats";
 import { Between } from "typeorm";
-import { startOfWeek, endOfWeek, format, startOfDay } from "date-fns";
+import { startOfWeek, endOfWeek, format, startOfDay, parseISO, endOfDay, addMinutes } from "date-fns";
 import { syncShiftWithGoogleCalendar } from "../third-party/google-calendar/googleCalender";
-import { calculateShiftCost, calculateShiftHours, normalizeTime, runInTransaction } from "../utils/utils";
+import * as utils from "../utils/utils";
+import { Week } from "../entities/Week";
 
 const shiftRepository = AppDataSource.getRepository(Shift);
 const employeeRepository = AppDataSource.getRepository(Employee);
@@ -79,12 +81,20 @@ export const createShift = async (data: {
 	note?: string;
 	isPublished?: boolean;
 }) => {
-	return runInTransaction(async (queryRunner) => {
+	return utils.runInTransaction(async (queryRunner) => {
 		const { employeeId, storeId, date, startTime, endTime, note, isPublished } = data;
-		const shiftDate = new Date(date);
+		const normalizedStartTime = utils.normalizeTime(startTime);
+		const normalizedEndTime = utils.normalizeTime(endTime);
 
-		const normalizedStartTime = normalizeTime(startTime);
-		const normalizedEndTime = normalizeTime(endTime);
+		const dateISO = parseISO(date);
+		const adjustedDate = addMinutes(dateISO, dateISO.getTimezoneOffset());
+
+		const weekStart = format(startOfWeek(adjustedDate), "yyyy-MM-dd");
+		const weekEnd = format(endOfWeek(adjustedDate), "yyyy-MM-dd");
+
+		console.log("week start", weekStart);
+		console.log("week end", weekEnd);
+
 		// Fetch Store
 		const store: Store = await queryRunner.manager.getRepository(Store).findOne({ where: { id: storeId } });
 		if (!store) throw new Error("Store not found");
@@ -96,102 +106,97 @@ export const createShift = async (data: {
 
 		// Fetch employee
 		const employee: Employee = await queryRunner.manager.getRepository(Employee).findOne({ where: { id: employeeId } });
+		if (!employee) throw new Error(`Employee with id ${employeeId} not found`);
 
 		// Check if employee is available
 		const availability = await queryRunner.manager.getRepository(Availability).findOne({
-			where: { employee: { id: employeeId }, date: shiftDate, isBlocked: true },
+			where: { employee: { id: employeeId }, date, isBlocked: true },
 		});
 
 		if (availability) throw new Error("Employee has blocked this date for availability");
 
-		// Calculate shift hours and cost
-		const hours = calculateShiftHours(startTime, endTime);
-		const cost = calculateShiftCost(hours, employee.hourlyRate);
+		// Find or Create the week for this date.
+		let week: Week = await queryRunner.manager.getRepository(Week).findOne({
+			where: {
+				startDate: weekStart,
+				endDate: weekEnd,
+				store: { id: storeId },
+			},
+		});
 
-		// Check if shift exceeds max hours
-		if (Number(employee.currentHours) + Number(hours) > Number(employee.maxHours)) {
+		console.log("Week", week);
+
+		if (!week) {
+			week = queryRunner.manager.getRepository(Week).create({
+				startDate: weekStart,
+				endDate: weekEnd,
+				store,
+				budget: store.weeklyBudget, // Store's current weekly budget.
+				cost: 0, // Current cost is zero.
+			});
+
+			await queryRunner.manager.getRepository(Week).save(week);
+		}
+
+		// Find or create weekStats for this week_id and emp_id and storeId.
+		let weeklyStats: WeeklyStats = await queryRunner.manager.getRepository(WeeklyStats).findOne({
+			where: {
+				employee: { id: employeeId },
+				week: { id: week.id },
+				store: { id: storeId },
+			},
+		});
+
+		if (!weeklyStats) {
+			weeklyStats = queryRunner.manager.getRepository(WeeklyStats).create({
+				employee,
+				week,
+				store,
+				empHourlyRate: employee.hourlyRate,
+				empHours: 0,
+				empTotalCost: 0,
+				empMaxHours: employee.maxHours,
+			});
+			await queryRunner.manager.getRepository(WeeklyStats).save(weeklyStats);
+		}
+
+		const hours = utils.calculateShiftHours(startTime, endTime);
+		const cost = utils.calculateShiftCost(hours, employee.hourlyRate);
+
+		// If shift exceeds max hours
+		if (Number(weeklyStats.empHours) + Number(hours) > Number(employee.maxHours)) {
 			throw new Error("This shift would exceed employee's maximum hours");
 		}
 
-		// Fetch or create WeeklyStats
-		const weeklyStats = await getOrCreateWeeklyStats(queryRunner, storeId, shiftDate, store.weeklyBudget);
-		if (Number(weeklyStats.totalCost) + cost > Number(weeklyStats.budgetAllocated)) {
+		// If shift exceeds budget
+		if (Number(week.cost) + cost > Number(week.budget)) {
 			throw new Error("This shift would exceed the weekly budget");
 		}
 
 		// Create and save the shift
 		const newShift = queryRunner.manager.getRepository(Shift).create({
 			employee,
+			week,
 			store,
-			date: shiftDate,
+			date: adjustedDate,
 			startTime,
 			endTime,
 			hours,
 			cost,
 			note,
-			isPublished: isPublished || false,
 		});
-
-		// Sync with Google Calendar if published
-		// if (isPublished) {
-		// 	const eventId = await syncShiftWithGoogleCalendar(newShift).catch((error) => {
-		// 		console.error("Google Calendar sync failed:", error);
-		// 		throw new Error(`Cannot sync with Google Calendar: ${error.message}`);
-		// 	});
-		// 	if (eventId) newShift.googleCalendarEventId = eventId;
-		// }
 
 		await queryRunner.manager.getRepository(Shift).save(newShift);
 
-		// Update Employee and Weekly Stats
-		await updateEmployeeHours(queryRunner, employee, hours);
-		await updateWeeklyStats(queryRunner, weeklyStats, hours, cost);
+		week.cost = Number(week.cost) + cost;
+		weeklyStats.empHours = Number(weeklyStats.empHours) + hours;
+		weeklyStats.empTotalCost = Number(weeklyStats.empTotalCost) + cost;
+
+		await queryRunner.manager.getRepository(Week).save(week);
+		await queryRunner.manager.getRepository(WeeklyStats).save(weeklyStats);
 
 		return newShift;
 	});
-};
-
-/**
- * Updates employee's current hours.
- */
-const updateEmployeeHours = async (queryRunner: any, employee: Employee, hours: number) => {
-	employee.currentHours = Number(employee.currentHours) + Number(hours);
-	await queryRunner.manager.getRepository(Employee).save(employee);
-};
-
-/**
- * Updates weekly stats with shift details.
- */
-const updateWeeklyStats = async (queryRunner: any, weeklyStats: WeeklyStats, hours: number, cost: number) => {
-	weeklyStats.totalHours = Number(weeklyStats.totalHours) + Number(hours);
-	weeklyStats.totalCost = Number(weeklyStats.totalCost) + Number(cost);
-	weeklyStats.budgetRemaining = Number(weeklyStats.budgetRemaining) - Number(cost);
-	await queryRunner.manager.getRepository(WeeklyStats).save(weeklyStats);
-};
-
-/**
- * Retrieves or creates WeeklyStats for the given store and date range.
- */
-const getOrCreateWeeklyStats = async (queryRunner: any, storeId: string, shiftDate: Date, weeklyBudget: number) => {
-	const weekStart = startOfWeek(shiftDate);
-	const weekEnd = endOfWeek(shiftDate);
-
-	let weeklyStats = await queryRunner.manager.getRepository(WeeklyStats).findOne({
-		where: { store: { id: storeId }, weekStartDate: Between(weekStart, weekEnd) },
-	});
-
-	if (!weeklyStats) {
-		weeklyStats = queryRunner.manager.getRepository(WeeklyStats).create({
-			store: { id: storeId },
-			weekStartDate: weekStart,
-			weekEndDate: weekEnd,
-			budgetAllocated: weeklyBudget,
-			budgetRemaining: weeklyBudget,
-		});
-		await queryRunner.manager.getRepository(WeeklyStats).save(weeklyStats);
-	}
-
-	return weeklyStats;
 };
 
 export const updateShift = async (

@@ -1,40 +1,65 @@
 import { AppDataSource } from "../data-source";
 import { Employee, EmployeeType } from "../entities/Employee";
 import { Store } from "../entities/Store";
+import * as utils from "../utils/utils";
 
 const employeeRepository = AppDataSource.getRepository(Employee);
 const storeRepository = AppDataSource.getRepository(Store);
 
+const DEFAULT_BASE_PAY = 17;
+const DEFAULT_BASE_HOURS = 20;
+
+/**
+ * Get All the employees for a store.
+ * @param storeId
+ * @returns
+ */
 export const GetAllEmployees = async (storeId?: string) => {
 	try {
 		let query = employeeRepository.createQueryBuilder("employee").leftJoinAndSelect("employee.store", "store");
 
-		if (storeId) {
-			query = query.where("store.id = :storeId", { storeId });
+		if (!storeId) {
+			throw new Error("Store Id is required.");
 		}
 
-		return await query.getMany();
+		query = query.where("store.id = :storeId", { storeId });
+
+		const employees = utils.parseSafe(await query.getMany());
+
+		return utils.serviceResponse(true, employees, "");
 	} catch (error) {
-		console.error("Error fetching employees:", error);
-		throw new Error("Failed to fetch employees from the database.");
+		throw error;
 	}
 };
 
-export const GetEmployeeById = async (id: string) => {
+/**
+ * Get Employee By ID (for a store).
+ * @param id
+ * @returns
+ */
+export const GetEmployeeById = async (id: string, storeId?: string) => {
 	try {
-		const employee = await employeeRepository.findOne({ where: { id }, relations: ["store"] });
+		if (!storeId) {
+			throw new Error("Store Id is required.");
+		}
+
+		const employee = utils.parseSafe(await employeeRepository.findOne({ where: { id }, relations: ["store"] }));
 
 		if (!employee) {
 			throw new Error(`Employee with id ${id} not found.`);
 		}
 
-		return employee;
+		return utils.serviceResponse(true, employee, "");
 	} catch (error) {
-		console.error(`Error fetching employee with id: ${id}`, error);
-		throw new Error("Failed to fetch employee details.");
+		throw error;
 	}
 };
 
+/**
+ * Creates a new employee
+ * @param data
+ * @returns
+ */
 export const CreateEmployee = async (data: {
 	name: string;
 	email: string;
@@ -43,6 +68,8 @@ export const CreateEmployee = async (data: {
 	hourlyRate: number;
 	storeId: string;
 	password: string;
+	bio?: string;
+	imageUrl?: string;
 }) => {
 	try {
 		const store = await storeRepository.findOne({ where: { id: data.storeId } });
@@ -66,24 +93,23 @@ export const CreateEmployee = async (data: {
 		}
 
 		data.type = data.type ?? EmployeeType.ASSOCIATE;
-		data.hourlyRate = data.hourlyRate ?? 20;
-		data.hourlyRate = data.hourlyRate ?? 10;
+		data.hourlyRate = data.hourlyRate ?? DEFAULT_BASE_PAY;
+		data.maxHours = data.maxHours ?? DEFAULT_BASE_HOURS;
 		data.password = `${data.name}-${data.email}`;
 
-		// REMOVE PASSWORD BEFORE SEDNING IT BACK.
 		const newEmployee = employeeRepository.create({ ...data, store });
 
 		// Remove password
 		await employeeRepository.save(newEmployee);
 		const { password: _, ...emp } = newEmployee;
 
-		return emp;
+		return utils.serviceResponse(true, emp, "");
 	} catch (error) {
-		console.error("Error creating employee:", error);
-		throw new Error("Failed to create employee.");
+		throw error;
 	}
 };
 
+// DONT PING
 export const UpdateEmployee = async (id: string, data: Partial<Employee>) => {
 	try {
 		const employee = await employeeRepository.findOne({ where: { id }, relations: ["store"] });
@@ -131,7 +157,7 @@ export const ResetEmployeeHours = async (storeId: string) => {
 			throw new Error("No employees found for this store.");
 		}
 
-		employees.forEach((emp) => (emp.currentHours = 0));
+		// employees.forEach((emp) => (emp.currentHours = 0));
 		await employeeRepository.save(employees);
 
 		return { message: "Employee hours reset successfully." };

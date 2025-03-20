@@ -5,6 +5,7 @@ import { Shift } from "./Shift";
 import { BaseEntity } from "../types/base-entity";
 import { Reservation } from "./Reservation";
 import bcrypt from "bcryptjs";
+import { WeeklyStats } from "./WeeklyStats";
 
 export enum EmployeeType {
 	MANAGER = "manager",
@@ -35,9 +36,6 @@ export class Employee extends BaseEntity {
 
 	@Column("decimal")
 	maxHours: number;
-
-	@Column("decimal", { default: 0 })
-	currentHours: number;
 
 	@Column("decimal")
 	hourlyRate: number;
@@ -71,6 +69,12 @@ export class Employee extends BaseEntity {
 		cascade: ["soft-remove"],
 	})
 	reservations: Reservation[];
+
+	@OneToMany(() => WeeklyStats, (weeklyStats) => weeklyStats.employee, {
+		onDelete: "CASCADE",
+		cascade: ["soft-remove"],
+	})
+	weeklystats: WeeklyStats[];
 
 	@BeforeInsert()
 	async hashPassword() {

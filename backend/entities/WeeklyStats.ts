@@ -1,11 +1,26 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, RelationId } from "typeorm";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, RelationId, Unique } from "typeorm";
 import { Store } from "./Store";
 import { BaseEntity } from "../types/base-entity";
+import { Employee } from "./Employee";
+import { Week } from "./Week";
 
 @Entity()
+@Unique(["employeeId", "weekId"])
 export class WeeklyStats extends BaseEntity {
 	@PrimaryGeneratedColumn("uuid")
 	id: string;
+
+	@Column("uuid")
+	employeeId: string;
+
+	@ManyToOne(() => Employee, (employee) => employee.weeklystats)
+	employee: Employee;
+
+	@Column("uuid")
+	weekId: string;
+
+	@ManyToOne(() => Week, (week) => week.weeklystats)
+	week: Week;
 
 	@RelationId((weeklyStats: WeeklyStats) => weeklyStats.store)
 	storeId: string;
@@ -13,24 +28,20 @@ export class WeeklyStats extends BaseEntity {
 	@ManyToOne(() => Store, (store) => store.weeklyBudget)
 	store: Store;
 
-	@Column("date")
-	weekStartDate: Date;
-
-	@Column("date")
-	weekEndDate: Date;
+	@Column("decimal")
+	empHourlyRate: number;
 
 	@Column("decimal", { default: 0 })
-	totalHours: number;
-
-	@Column("decimal", { default: 0 })
-	totalCost: number;
+	empHours: number;
 
 	@Column("decimal")
-	budgetAllocated: number;
+	empMaxHours: number;
 
 	@Column("decimal", { default: 0 })
-	budgetRemaining: number;
+	empTotalCost: number;
 
-	@Column("text", { nullable: true })
-	notes: string;
+	// @Column("decimal")
+	// budgetAllocated: number;
+	// @Column("text", { nullable: true })
+	// notes: string;
 }

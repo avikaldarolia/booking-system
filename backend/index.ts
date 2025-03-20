@@ -13,6 +13,8 @@ import googleCalendarRoutes from "./routes/googleCalendar.routes";
 import authRoutes from "./routes/auth.routes";
 import reservationRoutes from "./routes/reservation.routes";
 
+import { errorHandler } from "./utils/utils";
+
 dotenv.config();
 
 const app = express();
@@ -31,6 +33,8 @@ app.use("/api/shifts", shiftRoutes);
 app.use("/api/weekly-stats", weeklyStatsRoutes);
 app.use("/api/google-calendar", googleCalendarRoutes);
 app.use("/api/reservations", reservationRoutes);
+
+app.use(errorHandler);
 
 AppDataSource.initialize()
 	.then(() => {
