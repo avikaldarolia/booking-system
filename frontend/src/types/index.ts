@@ -69,3 +69,21 @@ export interface Customer {
 	phoneNumber: string;
 	name?: string;
 }
+
+export interface WeeklyEmployeeStats {
+	id: string;
+	empHours: number;
+	empMaxHours: number;
+	empTotalCost: number;
+	totalCost: number;
+	employee: Employee;
+}
+
+export interface WeekStats {
+	id: string;
+	startDate: string;
+	endDate: string;
+	cost: number;
+	budget: number;
+	hours: number;
+}

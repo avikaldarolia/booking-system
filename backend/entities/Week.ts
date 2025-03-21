@@ -39,4 +39,7 @@ export class Week extends BaseEntity {
 
 	@Column("decimal", { default: 0 })
 	cost: number;
+
+	@Column("decimal", { default: 0 })
+	hours: number;
 }

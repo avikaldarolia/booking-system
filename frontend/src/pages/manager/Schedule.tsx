@@ -6,6 +6,7 @@ import Spinner from "../../components/Spinner";
 import { Calendar as BigCalendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import { WeeklyEmployeeStats, WeekStats } from "../../types";
 
 const localizer = momentLocalizer(moment);
 
@@ -28,23 +29,6 @@ interface Shift {
 	cost: number;
 	note: string;
 	isPublished: boolean;
-}
-
-interface WeeklyEmployeeStats {
-	id: string;
-	empHours: number;
-	empMaxHours: number;
-	empTotalCost: number;
-	totalCost: number;
-	employee: Employee;
-}
-
-interface WeekStats {
-	id: string;
-	startDate: string;
-	endDate: string;
-	cost: number;
-	budget: number;
 }
 
 const Schedule = () => {

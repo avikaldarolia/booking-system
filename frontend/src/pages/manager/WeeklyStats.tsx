@@ -3,22 +3,12 @@ import Spinner from "../../components/Spinner";
 import { useEffect, useState } from "react";
 import { Calendar, ChevronLeft, ChevronRight, Clock, DollarSign, Edit, Save } from "lucide-react";
 import axios from "axios";
-
-interface WeeklyStatsData {
-	id: string;
-	weekStartDate: string;
-	weekEndDate: string;
-	totalHours: number;
-	totalCost: number;
-	budgetAllocated: number;
-	budgetRemaining: number;
-	notes: string;
-}
+import { WeekStats } from "../../types";
 
 const WeeklyStats = () => {
 	const [currentDate, setCurrentDate] = useState(new Date());
-	const [stats, setStats] = useState<WeeklyStatsData | null>(null);
-	const [historyStats, setHistoryStats] = useState<WeeklyStatsData[]>([]);
+	const [stats, setStats] = useState<WeekStats | null>(null);
+	const [historyStats, setHistoryStats] = useState<WeekStats[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [editing, setEditing] = useState(false);
 	const [editedStats, setEditedStats] = useState<{
@@ -38,24 +28,31 @@ const WeeklyStats = () => {
 		const fetchWeeklyStats = async () => {
 			try {
 				// Fetch current week stats
-				const statsResponse = await axios.get(
-					`weekly-stats?storeId=${storeId}&date=${format(currentDate, "yyyy-MM-dd")}`
-				);
-				setStats(statsResponse.data);
+				const weekStart = format(startOfWeek(currentDate), "yyyy-MM-dd");
+				const weekEnd = format(endOfWeek(currentDate), "yyyy-MM-dd");
+
+				const weekResponse = await axios.get(`week?storeId=${storeId}&startDate=${weekStart}&endDate=${weekEnd}`);
+
+				if (weekResponse.data.success) {
+					setStats(weekResponse.data.data);
+				}
 
 				// Fetch historical stats (last 4 weeks)
-				const historyResponse = await axios.get(`weekly-stats/history?storeId=${storeId}&weeks=4`);
-				setHistoryStats(historyResponse.data);
+				const historyResponse = await axios.get(`week/history?storeId=${storeId}&weeks=4`);
+
+				if (historyResponse.data.success) {
+					setHistoryStats(historyResponse.data.data);
+				}
 
 				setLoading(false);
 
 				// Initialize edited stats if we have stats
-				if (statsResponse.data) {
-					setEditedStats({
-						budgetAllocated: statsResponse.data.budgetAllocated,
-						notes: statsResponse.data.notes || "",
-					});
-				}
+				// if (statsResponse.data) {
+				// 	setEditedStats({
+				// 		budgetAllocated: statsResponse.data.budgetAllocated,
+				// 		notes: statsResponse.data.notes || "",
+				// 	});
+				// }
 			} catch (error) {
 				console.error("Error fetching weekly stats:", error);
 				setLoading(false);
@@ -147,21 +144,19 @@ const WeeklyStats = () => {
 										}
 									/>
 								) : (
-									<p className="text-2xl font-semibold">${stats.budgetAllocated}</p>
+									<p className="text-2xl font-semibold">${stats.budget}</p>
 								)}
 							</div>
 						</div>
 						<div className="mb-4">
 							<div className="flex justify-between mb-1">
 								<span className="text-gray-600">Budget Used</span>
-								<span className="text-gray-600">{Math.round((stats.totalCost / stats.budgetAllocated) * 100)}%</span>
+								<span className="text-gray-600">{((stats.cost / stats.budget) * 100).toFixed(2)}%</span>
 							</div>
 							<div className="w-full bg-gray-200 rounded-full h-2.5">
 								<div
-									className={`h-2.5 rounded-full ${
-										stats.totalCost / stats.budgetAllocated > 0.8 ? "bg-red-500" : "bg-blue-500"
-									}`}
-									style={{ width: `${(stats.totalCost / stats.budgetAllocated) * 100}%` }}></div>
+									className={`h-2.5 rounded-full ${stats.cost / stats.budget > 0.8 ? "bg-red-500" : "bg-blue-500"}`}
+									style={{ width: `${(stats.cost / stats.budget) * 100}%` }}></div>
 							</div>
 						</div>
 					</div>
@@ -174,30 +169,28 @@ const WeeklyStats = () => {
 							<div>
 								<p className="text-gray-500 text-sm">Spent / Remaining</p>
 								<p className="text-2xl font-semibold">
-									${stats.totalCost} / ${stats.budgetRemaining}
+									${stats.cost} / ${stats.budget}
 								</p>
 							</div>
 						</div>
 						<div className="flex justify-between text-sm">
 							<div>
 								<p className="text-gray-500">Cost per Hour</p>
-								<p className="font-semibold">
-									${stats.totalHours > 0 ? (stats.totalCost / stats.totalHours).toFixed(2) : "0.00"}/hr
-								</p>
+								<p className="font-semibold">${stats.hours > 0 ? (stats.cost / stats.hours).toFixed(2) : "0.00"}/hr</p>
 							</div>
 							<div>
 								<p className="text-gray-500">Budget Status</p>
 								<p
 									className={`font-semibold ${
-										stats.budgetRemaining < 0
+										stats.budget - stats.cost < 0
 											? "text-red-500"
-											: stats.budgetRemaining < stats.budgetAllocated * 0.2
+											: stats.budget - stats.cost < stats.budget * 0.2
 											? "text-yellow-500"
 											: "text-green-500"
 									}`}>
-									{stats.budgetRemaining < 0
+									{stats.budget - stats.cost < 0
 										? "Over Budget"
-										: stats.budgetRemaining < stats.budgetAllocated * 0.2
+										: stats.budget - stats.cost < stats.budget * 0.2
 										? "Low Budget"
 										: "On Track"}
 								</p>
@@ -212,10 +205,10 @@ const WeeklyStats = () => {
 							</div>
 							<div>
 								<p className="text-gray-500 text-sm">Total Hours</p>
-								<p className="text-2xl font-semibold">{stats.totalHours} hours</p>
+								<p className="text-2xl font-semibold">{stats.hours} hours</p>
 							</div>
 						</div>
-						<div className="mb-4">
+						{/* <div className="mb-4">
 							<p className="text-gray-500 text-sm mb-2">Notes</p>
 							{editing ? (
 								<textarea
@@ -232,7 +225,7 @@ const WeeklyStats = () => {
 							) : (
 								<p className="text-gray-700">{stats.notes || "No notes for this week."}</p>
 							)}
-						</div>
+						</div> */}
 					</div>
 				</div>
 			)}
@@ -248,28 +241,28 @@ const WeeklyStats = () => {
 					<div className="space-y-4">
 						{[...historyStats, stats]
 							.filter(Boolean)
-							.sort((a, b) => new Date(a!.weekStartDate).getTime() - new Date(b!.weekStartDate).getTime())
+							.sort((a, b) => new Date(a!.startDate).getTime() - new Date(b!.endDate).getTime())
 							.map((weekStats, index) => (
 								<div key={index} className="border-b pb-4 last:border-b-0 last:pb-0">
 									<div className="flex justify-between items-center mb-1">
 										<span className="font-medium">
-											{format(new Date(weekStats!.weekStartDate), "MMM d")} -{" "}
-											{format(new Date(weekStats!.weekEndDate), "MMM d")}
+											{format(new Date(weekStats!.startDate), "MMM d")} -{" "}
+											{format(new Date(weekStats!.endDate), "MMM d")}
 										</span>
 										<span className="text-sm text-gray-600">
-											${weekStats!.totalCost} / ${weekStats!.budgetAllocated}
+											${weekStats!.cost} / ${weekStats!.budget}
 										</span>
 									</div>
 									<div className="w-full bg-gray-200 rounded-full h-2.5">
 										<div
 											className={`h-2.5 rounded-full ${
-												weekStats!.totalCost / weekStats!.budgetAllocated > 0.8 ? "bg-red-500" : "bg-blue-500"
+												weekStats!.cost / weekStats!.budget > 0.8 ? "bg-red-500" : "bg-blue-500"
 											}`}
-											style={{ width: `${(weekStats!.totalCost / weekStats!.budgetAllocated) * 100}%` }}></div>
+											style={{ width: `${(weekStats!.cost / weekStats!.budget) * 100}%` }}></div>
 									</div>
 									<div className="flex justify-between text-xs text-gray-500 mt-1">
-										<span>Hours: {weekStats!.totalHours}</span>
-										<span>{Math.round((weekStats!.totalCost / weekStats!.budgetAllocated) * 100)}% of budget</span>
+										<span>Hours: {weekStats!.hours}</span>
+										<span>{Math.round((weekStats!.cost / weekStats!.budget) * 100)}% of budget</span>
 									</div>
 								</div>
 							))}

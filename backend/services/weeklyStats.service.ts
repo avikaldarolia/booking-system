@@ -57,27 +57,27 @@ export const UpdateWeeklyStats = async (id: string, budgetAllocated: number, not
 	}
 };
 
-export const GetWeeklyStatsHistory = async (storeId: string, weeks: string) => {
-	try {
-		const numWeeks = weeks ? parseInt(weeks) : 4;
-		const currentDate = new Date();
-		const endDate = endOfWeek(currentDate);
-		const startDate = startOfWeek(subWeeks(currentDate, numWeeks - 1));
+// export const GetWeeklyStatsHistory = async (storeId: string, weeks: string) => {
+// 	try {
+// 		const numWeeks = weeks ? parseInt(weeks) : 4;
+// 		const currentDate = new Date();
+// 		const endDate = endOfWeek(currentDate);
+// 		const startDate = startOfWeek(subWeeks(currentDate, numWeeks - 1));
 
-		const weeklyStats = await weeklyStatsRepository.find({
-			where: {
-				store: { id: storeId },
-				weekStartDate: Between(startDate, endDate),
-			},
-			order: {
-				weekStartDate: "ASC",
-			},
-			relations: ["store"],
-		});
+// 		const weeklyStats = await weeklyStatsRepository.find({
+// 			where: {
+// 				store: { id: storeId },
+// 				weekStartDate: Between(startDate, endDate),
+// 			},
+// 			order: {
+// 				weekStartDate: "ASC",
+// 			},
+// 			relations: ["store"],
+// 		});
 
-		return weeklyStats;
-	} catch (error) {
-		console.error("Error in getWeeklyStatsHistory service:", error);
-		throw new Error("Internal server error");
-	}
-};
+// 		return weeklyStats;
+// 	} catch (error) {
+// 		console.error("Error in getWeeklyStatsHistory service:", error);
+// 		throw new Error("Internal server error");
+// 	}
+// };
