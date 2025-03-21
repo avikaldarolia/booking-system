@@ -4,6 +4,26 @@ import { Week } from "../entities/Week";
 import * as utils from "../utils/utils";
 
 const weekRepository = AppDataSource.getRepository(Week);
+
+export const GetWeekDetails = async (startDate: string, endDate: string, storeId: string) => {
+	try {
+		const begin = utils.localeDate(startDate);
+		const end = utils.localeDate(endDate);
+
+		let week = await weekRepository.findOne({
+			where: {
+				startDate: begin,
+				endDate: end,
+				store: { id: storeId },
+			},
+		});
+
+		return utils.serviceResponse(true, week, "");
+	} catch (error) {
+		throw error;
+	}
+};
+
 export const FindorCreate = async (startDate: Date, endDate: Date, store: Store) => {
 	try {
 		let week = await weekRepository.findOne({

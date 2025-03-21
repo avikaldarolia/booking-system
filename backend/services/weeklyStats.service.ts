@@ -3,49 +3,31 @@ import { WeeklyStats } from "../entities/WeeklyStats";
 import { Store } from "../entities/Store";
 import { Between } from "typeorm";
 import { startOfWeek, endOfWeek, subWeeks } from "date-fns";
+import * as utils from "../utils/utils";
 
 const weeklyStatsRepository = AppDataSource.getRepository(WeeklyStats);
 const storeRepository = AppDataSource.getRepository(Store);
 
-export const GetWeeklyStats = async (storeId: string, date: string) => {
+export const GetWeeklyStats = async (storeId: string, weekId: string) => {
 	try {
-		const targetDate = date ? new Date(date) : new Date();
-		const weekStart = startOfWeek(targetDate);
-		const weekEnd = endOfWeek(targetDate);
+		let stats;
 
-		let weeklyStats = await weeklyStatsRepository.findOne({
-			where: {
-				store: { id: storeId },
-				weekStartDate: Between(weekStart, weekEnd),
-			},
-			relations: ["store"],
-		});
-
-		// If no stats exist for this week, create a new entry
-		if (!weeklyStats) {
-			const store = await storeRepository.findOne({ where: { id: storeId } });
-
-			if (!store) {
-				throw new Error("Store not found");
-			}
-
-			weeklyStats = weeklyStatsRepository.create({
-				store,
-				weekStartDate: weekStart,
-				weekEndDate: weekEnd,
-				budgetAllocated: store.weeklyBudget,
-				budgetRemaining: store.weeklyBudget,
-				totalHours: 0,
-				totalCost: 0,
-			});
-
-			await weeklyStatsRepository.save(weeklyStats);
+		if (!weekId) {
+			throw new Error("Week id is required.");
 		}
 
-		return weeklyStats;
+		stats = utils.parseSafe(
+			await weeklyStatsRepository.find({
+				where: {
+					week: { id: weekId },
+					store: { id: storeId },
+				},
+				relations: ["employee"],
+			})
+		);
+		return utils.serviceResponse(true, stats, "");
 	} catch (error) {
-		console.error("Error in getWeeklyStats service:", error);
-		throw new Error("Internal server error");
+		throw error;
 	}
 };
 

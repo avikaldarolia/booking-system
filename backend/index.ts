@@ -12,6 +12,7 @@ import weeklyStatsRoutes from "./routes/weeklyStats.routes";
 import googleCalendarRoutes from "./routes/googleCalendar.routes";
 import authRoutes from "./routes/auth.routes";
 import reservationRoutes from "./routes/reservation.routes";
+import weekRoutes from "./routes/week.routes";
 
 import { errorHandler } from "./utils/utils";
 
@@ -33,6 +34,7 @@ app.use("/api/shifts", shiftRoutes);
 app.use("/api/weekly-stats", weeklyStatsRoutes);
 app.use("/api/google-calendar", googleCalendarRoutes);
 app.use("/api/reservations", reservationRoutes);
+app.use("/api/week", weekRoutes);
 
 app.use(errorHandler);
 

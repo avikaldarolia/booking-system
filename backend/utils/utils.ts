@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { AppDataSource } from "../data-source";
+import { addMinutes, parseISO } from "date-fns";
 
 /**
  * Async middleware to use await and async calls in express middleware ( For Controllers)
@@ -44,12 +45,15 @@ export const calculateShiftCost = (hours: number, hourlyRate: number): number =>
 	return Number(hours) * Number(hourlyRate);
 };
 
-export const getStartDate = (date: Date) => {
-	return new Date(`${date}T00:00:00`); // Local midnight
-};
-
-export const getEndDate = (date: Date) => {
-	return new Date(`${date}T23:59:59:5999`);
+/**
+ *
+ * @param date
+ * @returns
+ */
+export const localeDate = (date: string) => {
+	const isoDate = parseISO(date);
+	const fDate = addMinutes(isoDate, isoDate.getTimezoneOffset());
+	return fDate;
 };
 
 export const normalizeTime = (time: string) => (time?.length === 5 ? `${time}:00` : time);

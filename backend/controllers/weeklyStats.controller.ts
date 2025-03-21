@@ -4,14 +4,14 @@ import * as weeklyStatsService from "../services/weeklyStats.service";
 
 export const getWeeklyStats = utils.asyncMiddleware(async (req: Request, res: Response) => {
 	try {
-		const { storeId, date } = req.query;
+		const { storeId, weekId } = req.query;
 
 		if (!storeId) {
 			return res.status(400).json({ message: "Store ID is required" });
 		}
 
-		const stats = await weeklyStatsService.GetWeeklyStats(storeId as string, date as string);
-		return res.status(200).json(stats);
+		const stats = await weeklyStatsService.GetWeeklyStats(storeId as string, weekId as string);
+		return utils.sendResponse(req, res, stats.success, stats.data, stats.err);
 	} catch (error) {
 		console.error("Error fetching weekly stats:", error);
 		return res.status(500).json({ message: "Internal server error" });

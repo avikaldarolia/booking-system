@@ -1,15 +1,17 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, RelationId } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, RelationId, Index } from "typeorm";
 import { Employee } from "./Employee";
 import { Store } from "./Store";
 import { BaseEntity } from "../types/base-entity";
 import { Week } from "./Week";
 
 @Entity()
+@Index(["weekId"])
+@Index(["employeeId"])
 export class Shift extends BaseEntity {
 	@PrimaryGeneratedColumn("uuid")
 	id: string;
 
-	@RelationId((shift: Shift) => shift.employee)
+	@Column("uuid")
 	employeeId: string;
 
 	@ManyToOne(() => Employee, (employee) => employee.shifts, { onDelete: "CASCADE", cascade: ["soft-remove"] })
@@ -33,7 +35,7 @@ export class Shift extends BaseEntity {
 	@Column("decimal")
 	hours: number;
 
-	@RelationId((shift: Shift) => shift.week)
+	@Column("uuid")
 	weekId: string;
 
 	@ManyToOne(() => Week)

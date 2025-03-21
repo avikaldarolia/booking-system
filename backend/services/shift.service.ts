@@ -4,9 +4,8 @@ import { Shift } from "../entities/Shift";
 import { Employee } from "../entities/Employee";
 import { Store } from "../entities/Store";
 import { Availability } from "../entities/Availability";
-import { WeeklyStats } from "../entities/WeeklyStats";
 import { Between } from "typeorm";
-import { startOfWeek, endOfWeek, format, startOfDay, parseISO, endOfDay, addMinutes } from "date-fns";
+import { startOfWeek, endOfWeek, format } from "date-fns";
 import { syncShiftWithGoogleCalendar } from "../third-party/google-calendar/googleCalender";
 import * as utils from "../utils/utils";
 import { Week } from "../entities/Week";
@@ -17,15 +16,10 @@ const storeRepository = AppDataSource.getRepository(Store);
 const availabilityRepository = AppDataSource.getRepository(Availability);
 const weeklyStatsRepository = AppDataSource.getRepository(WeeklyStats);
 
-export const getAllShifts = async (storeId?: string, startDate?: string, endDate?: string, employeeId?: string) => {
+export const GetAllShifts = async (storeId?: string, startDate?: string, endDate?: string, employeeId?: string) => {
 	try {
-		// const start = startDate ? new Date(`${startDate}T00:00:00`) : new Date().toISOString(); // Local midnight
-		// const end = endDate ? new Date(`${endDate}T23:59:59.999`) : new Date().toISOString();
 		const start = startDate ? new Date(`${startDate}T00:00:00`) : null;
 		const end = endDate ? new Date(`${endDate}T23:59:59.999`) : null;
-
-		// const utcStart = start.toISOString();
-		// const utcEnd = end.toISOString();
 
 		let query = shiftRepository
 			.createQueryBuilder("shift")
@@ -47,15 +41,15 @@ export const getAllShifts = async (storeId?: string, startDate?: string, endDate
 			});
 		}
 
-		return await query.getMany();
-	} catch (error) {
-		console.log("error", error);
+		await query.getMany();
 
-		throw new Error(`Failed to fetch shifts: ${error instanceof Error && error.message}`);
+		return utils.serviceResponse(true, query, "");
+	} catch (error) {
+		throw error;
 	}
 };
 
-export const getShiftById = async (id: string) => {
+export const GetShiftById = async (id: string) => {
 	try {
 		const shift = await shiftRepository.findOne({
 			where: { id },
@@ -66,9 +60,9 @@ export const getShiftById = async (id: string) => {
 			throw new Error("Shift not found");
 		}
 
-		return shift;
+		return utils.serviceResponse(true, shift, "");
 	} catch (error) {
-		throw new Error(`Failed to fetch shift: ${error instanceof Error && error.message}`);
+		throw error;
 	}
 };
 
@@ -86,14 +80,10 @@ export const createShift = async (data: {
 		const normalizedStartTime = utils.normalizeTime(startTime);
 		const normalizedEndTime = utils.normalizeTime(endTime);
 
-		const dateISO = parseISO(date);
-		const adjustedDate = addMinutes(dateISO, dateISO.getTimezoneOffset());
+		const adjustedDate = utils.localeDate(date);
 
 		const weekStart = format(startOfWeek(adjustedDate), "yyyy-MM-dd");
 		const weekEnd = format(endOfWeek(adjustedDate), "yyyy-MM-dd");
-
-		console.log("week start", weekStart);
-		console.log("week end", weekEnd);
 
 		// Fetch Store
 		const store: Store = await queryRunner.manager.getRepository(Store).findOne({ where: { id: storeId } });
@@ -363,24 +353,46 @@ export const publishShift = async (id: string) => {
 	}
 };
 
-export const getWeeklyShifts = async (storeId: string, date: string) => {
+export const GetWeeklyShifts = async (storeId: string, date: string, weekId?: string | undefined) => {
 	try {
-		if (!storeId || !date) {
-			throw new Error("Store ID and date are required");
+		if (!storeId) {
+			throw new Error("Store Id is required");
 		}
 
 		const targetDate = new Date(date);
-		const weekStart = startOfWeek(targetDate);
-		const weekEnd = endOfWeek(targetDate);
+		if (isNaN(targetDate.getTime())) {
+			throw new Error("Invalid date format");
+		}
 
-		return await shiftRepository.find({
-			where: {
-				store: { id: storeId },
-				date: Between(weekStart, weekEnd),
-			},
-			relations: ["employee"],
-		});
+		let shifts;
+		if (weekId && weekId.trim().length > 0 && weekId !== "undefined") {
+			shifts = utils.parseSafe(
+				await shiftRepository.find({
+					where: {
+						store: { id: storeId },
+						week: { id: weekId },
+					},
+					relations: ["employee"],
+				})
+			);
+		} else {
+			const targetDate = new Date(date);
+			const weekStart = startOfWeek(targetDate);
+			const weekEnd = endOfWeek(targetDate);
+
+			shifts = utils.parseSafe(
+				await shiftRepository.find({
+					where: {
+						store: { id: storeId },
+						date: Between(weekStart, weekEnd),
+					},
+					relations: ["employee"],
+				})
+			);
+		}
+
+		return utils.serviceResponse(true, shifts, "");
 	} catch (error) {
-		throw new Error(`Failed to fetch weekly shifts: ${error instanceof Error && error.message}`);
+		throw error;
 	}
 };

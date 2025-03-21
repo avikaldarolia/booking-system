@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, RelationId, Unique } from "typeorm";
+import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn, RelationId, Unique } from "typeorm";
 import { Store } from "./Store";
 import { BaseEntity } from "../types/base-entity";
 import { Employee } from "./Employee";
@@ -6,6 +6,7 @@ import { Week } from "./Week";
 
 @Entity()
 @Unique(["employeeId", "weekId"])
+@Index(["employeeId", "weekId"])
 export class WeeklyStats extends BaseEntity {
 	@PrimaryGeneratedColumn("uuid")
 	id: string;
@@ -39,9 +40,4 @@ export class WeeklyStats extends BaseEntity {
 
 	@Column("decimal", { default: 0 })
 	empTotalCost: number;
-
-	// @Column("decimal")
-	// budgetAllocated: number;
-	// @Column("text", { nullable: true })
-	// notes: string;
 }
