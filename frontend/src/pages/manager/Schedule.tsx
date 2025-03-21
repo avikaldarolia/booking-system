@@ -21,9 +21,9 @@ interface Employee {
 interface Shift {
 	id: string;
 	employee: Employee;
-	date: string; // "yyyy-MM-dd"
-	startTime: string; // "HH:mm"
-	endTime: string; // "HH:mm"
+	date: string;
+	startTime: string;
+	endTime: string;
 	hours: number;
 	cost: number;
 	note: string;
@@ -249,6 +249,20 @@ const Schedule = () => {
 		return <Spinner />;
 	}
 
+	const mergedEmployees = employees?.map((emp) => {
+		const stats = weeklyEmployeeStats?.find((stat) => {
+			if (stat.employee.id === emp.id) {
+				return stat.empHours;
+			}
+			return 0;
+		});
+
+		return {
+			...emp,
+			currentHours: stats?.empHours ?? 0,
+		};
+	});
+
 	return (
 		<div className="container mx-auto px-4 py-6">
 			<div className="flex justify-between items-center mb-6">
@@ -352,13 +366,13 @@ const Schedule = () => {
 											<p className="font-semibold">${weekStats.cost}</p>
 										</div>
 									</div>
-									{/* <div className="flex items-center">
+									<div className="flex items-center">
 										<DollarSign className="h-5 w-5 text-blue-500 mr-2" />
 										<div>
 											<p className="text-gray-500 text-sm">Remaining</p>
-											<p className="font-semibold">${we.budgetRemaining}</p>
+											<p className="font-semibold">${weekStats.budget - weekStats.cost}</p>
 										</div>
-									</div> */}
+									</div>
 									{/* <div className="flex items-center">
 										<Clock className="h-5 w-5 text-purple-500 mr-2" />
 										<div>
@@ -419,12 +433,14 @@ const Schedule = () => {
 									setNewShift({ ...newShift, employeeId: e.target.value });
 									setErrors({ ...errors, employeeId: "" });
 								}}>
+								{/* UPDATE THE STATS AS PER THE WEEK SELECTED */}
 								<option value="">Select Employee</option>
-								{employees.map((employee) => (
-									<option key={employee.id} value={employee.id}>
-										{employee.name} ({employee.type}) - {employee.currentHours}/{employee.maxHours} hrs
-									</option>
-								))}
+								{mergedEmployees &&
+									mergedEmployees.map((employee) => (
+										<option key={employee.id} value={employee.id}>
+											{employee.name} ({employee.type}) - {employee.currentHours}/{employee.maxHours} hrs
+										</option>
+									))}
 							</select>
 							{errors.employeeId && <p className="text-red-500 text-xs mt-1">{errors.employeeId}</p>}
 						</div>

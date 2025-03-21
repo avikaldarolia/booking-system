@@ -15,7 +15,16 @@ const employeeRepository = AppDataSource.getRepository(Employee);
 const storeRepository = AppDataSource.getRepository(Store);
 const availabilityRepository = AppDataSource.getRepository(Availability);
 const weeklyStatsRepository = AppDataSource.getRepository(WeeklyStats);
+const weekRepository = AppDataSource.getRepository(Week);
 
+/**
+ * Get all shifts
+ * @param storeId
+ * @param startDate
+ * @param endDate
+ * @param employeeId
+ * @returns
+ */
 export const GetAllShifts = async (storeId?: string, startDate?: string, endDate?: string, employeeId?: string) => {
 	try {
 		const start = startDate ? new Date(`${startDate}T00:00:00`) : null;
@@ -49,6 +58,11 @@ export const GetAllShifts = async (storeId?: string, startDate?: string, endDate
 	}
 };
 
+/**
+ * Gets shift by id
+ * @param id
+ * @returns
+ */
 export const GetShiftById = async (id: string) => {
 	try {
 		const shift = await shiftRepository.findOne({
@@ -66,6 +80,11 @@ export const GetShiftById = async (id: string) => {
 	}
 };
 
+/**
+ * Creates a shift
+ * @param data
+ * @returns
+ */
 export const createShift = async (data: {
 	employeeId: string;
 	storeId: string;
@@ -75,7 +94,7 @@ export const createShift = async (data: {
 	note?: string;
 	isPublished?: boolean;
 }) => {
-	return utils.runInTransaction(async (queryRunner) => {
+	return utils.runInTransaction<Shift>(async (queryRunner) => {
 		const { employeeId, storeId, date, startTime, endTime, note, isPublished } = data;
 		const normalizedStartTime = utils.normalizeTime(startTime);
 		const normalizedEndTime = utils.normalizeTime(endTime);
@@ -113,8 +132,6 @@ export const createShift = async (data: {
 				store: { id: storeId },
 			},
 		});
-
-		console.log("Week", week);
 
 		if (!week) {
 			week = queryRunner.manager.getRepository(Week).create({
@@ -187,6 +204,98 @@ export const createShift = async (data: {
 
 		return newShift;
 	});
+};
+
+/**
+ * Deletes the shift
+ * @param id
+ * @returns
+ */
+export const deleteShift = async (id: string) => {
+	return utils.runInTransaction<Shift>(async (queryRunner) => {
+		const shift: Shift = utils.parseSafe(
+			await shiftRepository.findOne({
+				where: { id },
+				relations: ["employee", "week"],
+			})
+		);
+		if (!shift) throw new Error("Shift not found");
+
+		let week = shift.week;
+
+		let weeklyStats: WeeklyStats = utils.parseSafe(
+			await weeklyStatsRepository.findOne({
+				where: {
+					week: { id: shift.week?.id },
+					employee: { id: shift.employee?.id },
+				},
+			})
+		);
+
+		// Remove emp hours and cost from weekly-emp-stats
+		weeklyStats.empHours = Number(weeklyStats.empHours) - Number(shift.hours);
+		weeklyStats.empTotalCost = Number(weeklyStats.empTotalCost) - Number(shift.cost);
+
+		// Remove emp cost from weekly-stats
+		week.cost = Number(week.cost) - Number(shift.cost);
+
+		await weeklyStatsRepository.save(weeklyStats);
+		await weekRepository.save(week);
+
+		await shiftRepository.remove(shift);
+		return shift;
+	});
+};
+
+/**
+ * Get weekly shifts by date or weekId.
+ * @param storeId
+ * @param date
+ * @param weekId
+ * @returns
+ */
+export const GetWeeklyShifts = async (storeId: string, date: string, weekId?: string | undefined) => {
+	try {
+		if (!storeId) {
+			throw new Error("Store Id is required");
+		}
+
+		const targetDate = new Date(date);
+		if (isNaN(targetDate.getTime())) {
+			throw new Error("Invalid date format");
+		}
+
+		let shifts;
+		if (weekId && weekId.trim().length > 0 && weekId !== "undefined") {
+			shifts = utils.parseSafe(
+				await shiftRepository.find({
+					where: {
+						store: { id: storeId },
+						week: { id: weekId },
+					},
+					relations: ["employee"],
+				})
+			);
+		} else {
+			const targetDate = new Date(date);
+			const weekStart = startOfWeek(targetDate);
+			const weekEnd = endOfWeek(targetDate);
+
+			shifts = utils.parseSafe(
+				await shiftRepository.find({
+					where: {
+						store: { id: storeId },
+						date: Between(weekStart, weekEnd),
+					},
+					relations: ["employee"],
+				})
+			);
+		}
+
+		return utils.serviceResponse(true, shifts, "");
+	} catch (error) {
+		throw error;
+	}
 };
 
 export const updateShift = async (
@@ -295,104 +404,26 @@ export const updateShift = async (
 	}
 };
 
-export const deleteShift = async (id: string) => {
-	return runInTransaction(async (queryRunner) => {
-		const shift = await shiftRepository.findOne({
-			where: { id },
-			relations: ["employee", "store"],
-		});
+// export const publishShift = async (id: string) => {
+// 	try {
+// 		const shift = await shiftRepository.findOne({
+// 			where: { id },
+// 			relations: ["employee", "store"],
+// 		});
 
-		if (!shift) throw new Error("Shift not found");
-		const weekStart = startOfWeek(new Date(shift.date));
-		const weekEnd = endOfWeek(new Date(shift.date));
+// 		if (!shift) throw new Error("Shift not found");
 
-		const weeklyStats = await weeklyStatsRepository.findOne({
-			where: {
-				store: { id: shift.store.id },
-				weekStartDate: Between(weekStart, weekEnd),
-			},
-		});
+// 		shift.isPublished = true;
 
-		const employee = shift.employee;
-		employee.currentHours -= shift.hours;
-		await employeeRepository.save(employee);
+// 		try {
+// 			const eventId = await syncShiftWithGoogleCalendar(shift);
+// 			if (eventId) shift.googleCalendarEventId = eventId;
+// 		} catch (error) {
+// 			console.error("Google Calendar sync failed:", error);
+// 		}
 
-		if (weeklyStats) {
-			weeklyStats.totalHours = Number(weeklyStats.totalHours) - Number(shift.hours);
-			weeklyStats.totalCost = Number(weeklyStats.totalCost) - Number(shift.cost);
-			weeklyStats.budgetRemaining = Number(weeklyStats.budgetRemaining) + Number(shift.cost);
-			await weeklyStatsRepository.save(weeklyStats);
-		}
-
-		await shiftRepository.remove(shift);
-		return { message: "Shift deleted successfully" };
-	});
-};
-
-export const publishShift = async (id: string) => {
-	try {
-		const shift = await shiftRepository.findOne({
-			where: { id },
-			relations: ["employee", "store"],
-		});
-
-		if (!shift) throw new Error("Shift not found");
-
-		shift.isPublished = true;
-
-		try {
-			const eventId = await syncShiftWithGoogleCalendar(shift);
-			if (eventId) shift.googleCalendarEventId = eventId;
-		} catch (error) {
-			console.error("Google Calendar sync failed:", error);
-		}
-
-		return await shiftRepository.save(shift);
-	} catch (error) {
-		throw new Error(`Failed to publish shift: ${error instanceof Error && error.message}`);
-	}
-};
-
-export const GetWeeklyShifts = async (storeId: string, date: string, weekId?: string | undefined) => {
-	try {
-		if (!storeId) {
-			throw new Error("Store Id is required");
-		}
-
-		const targetDate = new Date(date);
-		if (isNaN(targetDate.getTime())) {
-			throw new Error("Invalid date format");
-		}
-
-		let shifts;
-		if (weekId && weekId.trim().length > 0 && weekId !== "undefined") {
-			shifts = utils.parseSafe(
-				await shiftRepository.find({
-					where: {
-						store: { id: storeId },
-						week: { id: weekId },
-					},
-					relations: ["employee"],
-				})
-			);
-		} else {
-			const targetDate = new Date(date);
-			const weekStart = startOfWeek(targetDate);
-			const weekEnd = endOfWeek(targetDate);
-
-			shifts = utils.parseSafe(
-				await shiftRepository.find({
-					where: {
-						store: { id: storeId },
-						date: Between(weekStart, weekEnd),
-					},
-					relations: ["employee"],
-				})
-			);
-		}
-
-		return utils.serviceResponse(true, shifts, "");
-	} catch (error) {
-		throw error;
-	}
-};
+// 		return await shiftRepository.save(shift);
+// 	} catch (error) {
+// 		throw new Error(`Failed to publish shift: ${error instanceof Error && error.message}`);
+// 	}
+// };

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { AppDataSource } from "../data-source";
 import { addMinutes, parseISO } from "date-fns";
+import { IServiceResponse } from "../types/types";
 
 /**
  * Async middleware to use await and async calls in express middleware ( For Controllers)
@@ -12,7 +13,7 @@ export const asyncMiddleware =
 	(req: Request, res: Response, next: NextFunction) =>
 		Promise.resolve(fn(req, res, next)).catch(next);
 
-export async function runInTransaction<T>(operation: (queryRunner: any) => Promise<T>): Promise<T> {
+export async function runInTransaction<T>(operation: (queryRunner: any) => Promise<T>): Promise<IServiceResponse<T>> {
 	const queryRunner = AppDataSource.createQueryRunner();
 	await queryRunner.connect();
 	await queryRunner.startTransaction();
@@ -23,9 +24,7 @@ export async function runInTransaction<T>(operation: (queryRunner: any) => Promi
 		return serviceResponse(true, result, "");
 	} catch (error) {
 		await queryRunner.rollbackTransaction();
-		// console.error("Transaction failed:", error);
 		throw error;
-		// throw new Error(`Transaction failed: ${error instanceof Error ? error.message : error}`);
 	} finally {
 		await queryRunner.release();
 	}

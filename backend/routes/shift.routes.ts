@@ -3,9 +3,9 @@ import {
 	getAllShifts,
 	getShiftById,
 	createShift,
-	updateShift,
+	// updateShift,
 	deleteShift,
-	publishShift,
+	// publishShift,
 	getWeeklyShifts,
 } from "../controllers/shift.controller";
 import { authenticate, authorize } from "../middleware/auth.middleware";
@@ -21,8 +21,8 @@ router.get("/:id", getShiftById);
 
 // Manager routes
 router.post("/", authorize(["manager"]), createShift);
-router.put("/:id", authorize(["manager"]), updateShift);
+// router.put("/:id", authorize(["manager"]), updateShift);
 router.delete("/:id", authorize(["manager"]), deleteShift);
-router.post("/:id/publish", authorize(["manager"]), publishShift);
+// router.post("/:id/publish", authorize(["manager"]), publishShift);
 
 export default router;
