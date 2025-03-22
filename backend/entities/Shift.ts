@@ -47,9 +47,6 @@ export class Shift extends BaseEntity {
 	@Column("text", { nullable: true })
 	note: string;
 
-	// @Column("boolean", { default: false })
-	// isPublished: boolean;
-
 	@Column("text", { nullable: true })
 	googleCalendarEventId: string;
 }

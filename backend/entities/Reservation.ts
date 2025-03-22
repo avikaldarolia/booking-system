@@ -1,12 +1,4 @@
-import {
-	Entity,
-	PrimaryGeneratedColumn,
-	Column,
-	ManyToOne,
-	CreateDateColumn,
-	UpdateDateColumn,
-	RelationId,
-} from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, RelationId } from "typeorm";
 import { Employee } from "./Employee";
 import { Customer } from "./Customer";
 import { BaseEntity } from "../types/base-entity";

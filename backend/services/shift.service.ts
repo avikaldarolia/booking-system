@@ -27,9 +27,6 @@ const weekRepository = AppDataSource.getRepository(Week);
  */
 export const GetAllShifts = async (storeId?: string, startDate?: string, endDate?: string, employeeId?: string) => {
 	try {
-		const start = startDate ? new Date(`${startDate}T00:00:00`) : null;
-		const end = endDate ? new Date(`${endDate}T23:59:59.999`) : null;
-
 		let query = shiftRepository
 			.createQueryBuilder("shift")
 			.leftJoinAndSelect("shift.employee", "employee")
@@ -43,16 +40,17 @@ export const GetAllShifts = async (storeId?: string, startDate?: string, endDate
 			query = query.andWhere("employee.id = :employeeId", { employeeId });
 		}
 
-		if (start && end) {
+		if (startDate && endDate) {
+			const start = utils.localeDate(startDate);
+			const end = utils.localeDate(endDate);
 			query = query.andWhere("shift.date BETWEEN :start AND :end", {
 				start,
 				end,
 			});
 		}
 
-		await query.getMany();
-
-		return utils.serviceResponse(true, query, "");
+		const result = utils.parseSafe(await query.getMany());
+		return utils.serviceResponse(true, result, "");
 	} catch (error) {
 		throw error;
 	}

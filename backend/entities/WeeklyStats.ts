@@ -1,4 +1,4 @@
-import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn, RelationId, Unique } from "typeorm";
+import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn, Relation, RelationId, Unique } from "typeorm";
 import { Store } from "./Store";
 import { BaseEntity } from "../types/base-entity";
 import { Employee } from "./Employee";
@@ -21,12 +21,14 @@ export class WeeklyStats extends BaseEntity {
 	weekId: string;
 
 	@ManyToOne(() => Week, (week) => week.weeklystats)
+	// week: Relation<Week>;
 	week: Week;
 
 	@RelationId((weeklyStats: WeeklyStats) => weeklyStats.store)
 	storeId: string;
 
 	@ManyToOne(() => Store, (store) => store.weeklyBudget)
+	// store: Relation<Store>;
 	store: Store;
 
 	@Column("decimal")

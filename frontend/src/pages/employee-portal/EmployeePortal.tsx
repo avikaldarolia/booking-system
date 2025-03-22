@@ -39,7 +39,7 @@ const EmployeePortal = () => {
 					const result = results[index];
 
 					if (result.status === "fulfilled") {
-						stateSetters[key as keyof typeof stateSetters](result.value.data);
+						stateSetters[key as keyof typeof stateSetters](result.value.data.sucess ? result.value.data.data : []);
 					} else {
 						console.error(`Error fetching ${key}:`, result.reason);
 					}
@@ -58,6 +58,8 @@ const EmployeePortal = () => {
 		return <Spinner />;
 	}
 
+	console.log("ss", shifts);
+
 	return (
 		<div className="container mx-auto px-4 py-6">
 			<h1 className="text-2xl font-bold text-gray-800 mb-6">Welcome, {user?.name}</h1>
@@ -71,11 +73,11 @@ const EmployeePortal = () => {
 						<h2 className="text-xl font-semibold">Upcoming Shifts</h2>
 					</div>
 
-					{shifts.length === 0 ? (
+					{shifts?.length === 0 ? (
 						<p className="text-gray-500">No upcoming shifts scheduled</p>
 					) : (
 						<div className="space-y-4">
-							{shifts.map((shift) => (
+							{shifts?.map((shift) => (
 								<div key={shift.id} className="border-l-4 border-blue-500 pl-4">
 									<p className="font-medium">{format(parseISO(shift.date), "EEEE, MMM d")}</p>
 									<p className="text-gray-600">
@@ -100,7 +102,7 @@ const EmployeePortal = () => {
 						<p className="text-gray-500">No availability blocks set</p>
 					) : (
 						<div className="space-y-4">
-							{availabilities.map((availability) => (
+							{availabilities?.map((availability) => (
 								<div
 									key={availability.id}
 									className={`border-l-4 pl-4 ${availability.isBlocked ? "border-red-500" : "border-green-500"}`}>
@@ -127,7 +129,7 @@ const EmployeePortal = () => {
 						<p className="text-gray-500">No upcoming reservations</p>
 					) : (
 						<div className="space-y-4">
-							{reservations.map((reservation) => (
+							{reservations?.map((reservation) => (
 								<div key={reservation.id} className="border-l-4 border-green-500 pl-4">
 									<p className="font-medium">{format(parseISO(reservation.date), "EEEE, MMM d")}</p>
 									<p className="text-gray-600">
