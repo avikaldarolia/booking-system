@@ -37,9 +37,8 @@ const EmployeePortal = () => {
 
 				Object.keys(endpoints).forEach((key, index) => {
 					const result = results[index];
-
 					if (result.status === "fulfilled") {
-						stateSetters[key as keyof typeof stateSetters](result.value.data.sucess ? result.value.data.data : []);
+						stateSetters[key as keyof typeof stateSetters](result.value.data.data ? result.value.data.data : []);
 					} else {
 						console.error(`Error fetching ${key}:`, result.reason);
 					}
@@ -57,8 +56,6 @@ const EmployeePortal = () => {
 	if (loading) {
 		return <Spinner />;
 	}
-
-	console.log("ss", shifts);
 
 	return (
 		<div className="container mx-auto px-4 py-6">
@@ -98,7 +95,7 @@ const EmployeePortal = () => {
 						<h2 className="text-xl font-semibold">Availability Blocks</h2>
 					</div>
 
-					{availabilities.length === 0 ? (
+					{availabilities?.length === 0 ? (
 						<p className="text-gray-500">No availability blocks set</p>
 					) : (
 						<div className="space-y-4">
@@ -125,7 +122,7 @@ const EmployeePortal = () => {
 						<h2 className="text-xl font-semibold">Upcoming Reservations</h2>
 					</div>
 
-					{reservations.length === 0 ? (
+					{reservations?.length === 0 ? (
 						<p className="text-gray-500">No upcoming reservations</p>
 					) : (
 						<div className="space-y-4">

@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { Calendar as BigCalendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import axios from "axios";
-import { format } from "date-fns";
+import { addWeeks, endOfWeek, format, startOfWeek, subWeeks } from "date-fns";
 import { useAuth } from "../../contexts/AuthContext";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import Spinner from "../../components/Spinner";
 import { Availability, Reservation, Shift } from "../../types";
@@ -16,6 +16,7 @@ type ResourceType = "shift" | "reservation" | "availability";
 const EmployeeSchedule = () => {
 	const { user } = useAuth();
 	const [shifts, setShifts] = useState<Shift[]>([]);
+	const [currentDate, setCurrentDate] = useState(new Date());
 	const [reservations, setReservations] = useState<Reservation[]>([]);
 	const [availabilities, setAvailabilities] = useState<Availability[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -42,7 +43,7 @@ const EmployeeSchedule = () => {
 			};
 
 			try {
-				const results = await await Promise.allSettled(Object.entries(endpoints).map(([, url]) => axios.get(url)));
+				const results = await Promise.allSettled(Object.entries(endpoints).map(([, url]) => axios.get(url)));
 
 				const stateSetters = {
 					shifts: setShifts,
@@ -53,7 +54,7 @@ const EmployeeSchedule = () => {
 				Object.keys(endpoints).forEach((key, index) => {
 					const result = results[index];
 					if (result.status === "fulfilled") {
-						stateSetters[key as keyof typeof stateSetters](result.value.data);
+						stateSetters[key as keyof typeof stateSetters](result.value.data.success ? result.value.data.data : []);
 					} else {
 						console.error(`Error fetching ${key}:`, result.reason);
 					}
@@ -69,37 +70,25 @@ const EmployeeSchedule = () => {
 		fetchSchedule();
 	}, [user]);
 
+	const handlePreviousWeek = () => {
+		setCurrentDate(subWeeks(currentDate, 1));
+	};
+
+	const handleNextWeek = () => {
+		setCurrentDate(addWeeks(currentDate, 1));
+	};
+
 	const events = [
 		...shifts.map((shift) => {
-			const shiftDate = new Date(shift.date);
-
-			const [startHours, startMinutes] = shift.startTime.split(":").map(Number);
-			const [endHours, endMinutes] = shift.endTime.split(":").map(Number);
-
-			const start = new Date(shiftDate);
-			start.setHours(startHours, startMinutes, 0);
-
-			const end = new Date(shiftDate);
-			end.setHours(endHours, endMinutes, 0);
 			return {
 				id: shift.id,
 				title: "Shift",
-				start,
-				end,
+				start: new Date(`${shift.date}T${shift.startTime}`),
+				end: new Date(`${shift.date}T${shift.endTime}`),
 				resource: "shift",
 			};
 		}),
 		...reservations.map((reservation) => {
-			const reservationDate = new Date(reservation.date);
-
-			const [startHours, startMinutes] = reservation.startTime.split(":").map(Number);
-			const [endHours, endMinutes] = reservation.endTime.split(":").map(Number);
-
-			const start = new Date(reservationDate);
-			start.setHours(startHours, startMinutes, 0);
-
-			const end = new Date(reservationDate);
-			end.setHours(endHours, endMinutes, 0);
 			return {
 				id: reservation.id,
 				title: `Appointment: ${reservation.customer.name}`,
@@ -109,16 +98,6 @@ const EmployeeSchedule = () => {
 			};
 		}),
 		...availabilities.map((availability) => {
-			const availabilityDate = new Date(availability.date);
-
-			const [startHours, startMinutes] = availability.startTime.split(":").map(Number);
-			const [endHours, endMinutes] = availability.endTime.split(":").map(Number);
-
-			const start = new Date(availabilityDate);
-			start.setHours(startHours, startMinutes, 0);
-
-			const end = new Date(availabilityDate);
-			end.setHours(endHours, endMinutes, 0);
 			return {
 				id: availability.id,
 				title: `Blocked ${availability.note}`,
@@ -129,6 +108,8 @@ const EmployeeSchedule = () => {
 		}),
 	];
 
+	console.log(availabilities);
+
 	if (loading) {
 		return <Spinner />;
 	}
@@ -138,9 +119,19 @@ const EmployeeSchedule = () => {
 			<div className="bg-white rounded-lg shadow-lg p-6">
 				<div className="flex items-center justify-between mb-6">
 					<h2 className="text-2xl font-bold text-gray-800">My Schedule</h2>
-					<div className="flex items-center">
-						<CalendarIcon className="h-5 w-5 text-blue-500 mr-2" />
-						<span className="text-gray-600">{format(new Date(), "MMMM yyyy")}</span>
+					<div className="flex items-center space-x-2">
+						<button onClick={handlePreviousWeek} className="p-2 rounded-full hover:bg-gray-200">
+							<ChevronLeft className="h-5 w-5" />
+						</button>
+						<div className="bg-white px-4 py-2 rounded-lg shadow">
+							<CalendarIcon className="h-5 w-5 text-blue-500 inline mr-2" />
+							<span>
+								{format(startOfWeek(currentDate), "MMM d")} - {format(endOfWeek(currentDate), "MMM d, yyyy")}
+							</span>
+						</div>
+						<button onClick={handleNextWeek} className="p-2 rounded-full hover:bg-gray-200">
+							<ChevronRight className="h-5 w-5" />
+						</button>
 					</div>
 				</div>
 
@@ -148,10 +139,12 @@ const EmployeeSchedule = () => {
 					<BigCalendar
 						localizer={localizer}
 						events={events}
-						views={["month", "week", "day"]}
+						views={["week", "day"]}
 						defaultView="week"
 						startAccessor="start"
 						endAccessor="end"
+						onNavigate={(date) => setCurrentDate(date)}
+						date={currentDate}
 						eventPropGetter={(event) => ({
 							className: getClassNameByResource(event.resource as ResourceType),
 							style: {

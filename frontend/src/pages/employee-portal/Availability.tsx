@@ -32,7 +32,9 @@ const EmployeeAvailability = () => {
 		const fetchAvailability = async () => {
 			try {
 				const response = await axios.get(`availability/employee/${user?.id}`);
-				setAvailabilities(response.data);
+				if (response.data.success) {
+					setAvailabilities(response.data.data);
+				}
 				setLoading(false);
 			} catch (error) {
 				console.error("Error fetching availability:", error);

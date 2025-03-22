@@ -17,3 +17,11 @@ export const formatPhoneNumber = (value: string) => {
 	if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
 	return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
 };
+
+export const getDateTimeForEvent = (date: string, time: string) => {
+	const [hours, minutes] = time.split(":").map(Number);
+	const dateTime = new Date(date);
+	dateTime.setHours(hours, minutes, 0);
+
+	return dateTime;
+};

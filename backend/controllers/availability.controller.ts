@@ -1,25 +1,27 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import * as utils from "../utils/utils";
 import * as availabilityService from "../services/availability.service";
 
-export const getAvailabilityByEmployee = utils.asyncMiddleware(async (req: Request, res: Response) => {
-	try {
-		const { employeeId } = req.params;
-		const { startDate, endDate } = req.query;
+export const getAvailabilityByEmployee = utils.asyncMiddleware(
+	async (req: Request, res: Response, next: NextFunction) => {
+		try {
+			const { employeeId } = req.params;
+			const { startDate, endDate } = req.query;
 
-		const availabilities = await availabilityService.GetAvailabilityByEmployee(
-			employeeId,
-			startDate as string,
-			endDate as string
-		);
-		return res.status(200).json(availabilities);
-	} catch (error) {
-		console.error("Error fetching availabilities:", error);
-		return res.status(500).json({ message: "Internal server error" });
+			const availabilities = await availabilityService.GetAvailabilityByEmployee(
+				employeeId,
+				startDate as string,
+				endDate as string
+			);
+
+			return utils.sendResponse(req, res, availabilities.success, availabilities.data, availabilities.err);
+		} catch (error) {
+			next(error);
+		}
 	}
-});
+);
 
-export const createAvailability = utils.asyncMiddleware(async (req: Request, res: Response) => {
+export const createAvailability = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { employeeId, date, startTime, endTime, isBlocked, note } = req.body;
 
@@ -31,10 +33,10 @@ export const createAvailability = utils.asyncMiddleware(async (req: Request, res
 			isBlocked,
 			note
 		);
-		return res.status(201).json(newAvailability);
+		return utils.sendResponse(req, res, newAvailability.success, newAvailability.data, newAvailability.err);
 	} catch (error) {
 		console.error("Error creating availability:", error);
-		return res.status(500).json({ message: "Internal server error" });
+		next(error);
 	}
 });
 

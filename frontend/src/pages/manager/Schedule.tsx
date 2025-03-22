@@ -159,7 +159,7 @@ const Schedule = () => {
 				...newShift,
 				storeId,
 				isPublished: true,
-				date: newShift.date, // Send as "yyyy-MM-dd"
+				date: newShift.date,
 			});
 
 			if (!response.data.success) {
@@ -210,21 +210,11 @@ const Schedule = () => {
 	};
 
 	const events = shifts?.map((shift) => {
-		const shiftDate = new Date(shift.date); // Parse "yyyy-MM-dd"
-		const [startHours, startMinutes] = shift.startTime.split(":").map(Number);
-		const [endHours, endMinutes] = shift.endTime.split(":").map(Number);
-
-		const start = new Date(shiftDate);
-		start.setHours(startHours, startMinutes, 0);
-
-		const end = new Date(shiftDate);
-		end.setHours(endHours, endMinutes, 0);
-
 		return {
 			id: shift.id,
 			title: `${shift?.employee?.name} (${shift?.employee?.type})`,
-			start,
-			end,
+			start: new Date(`${shift.date}T${shift.startTime}`),
+			end: new Date(`${shift.date}T${shift.endTime}`),
 			resource: shift,
 		};
 	});

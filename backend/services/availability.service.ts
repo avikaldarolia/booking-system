@@ -1,3 +1,4 @@
+import * as utils from "./../utils/utils";
 import { AppDataSource } from "../data-source";
 import { Availability } from "../entities/Availability";
 import { Employee } from "../entities/Employee";
@@ -25,11 +26,12 @@ export const GetAvailabilityByEmployee = async (employeeId: string, startDate?: 
 			});
 		}
 
-		const availabilities = await query.getMany();
-		return availabilities;
+		query = query.orderBy("availability.date", "DESC");
+
+		const availabilities = utils.parseSafe(await query.getMany());
+		return utils.serviceResponse(true, availabilities, "");
 	} catch (error) {
-		console.error("Error in getAvailabilityByEmployee service:", error);
-		throw new Error("Internal server error");
+		throw error;
 	}
 };
 
@@ -58,10 +60,9 @@ export const CreateAvailability = async (
 		});
 
 		await availabilityRepository.save(newAvailability);
-		return newAvailability;
+		return utils.serviceResponse(true, newAvailability, "");
 	} catch (error) {
-		console.error("Error in createAvailability service:", error);
-		throw new Error("Internal server error");
+		throw error;
 	}
 };
 
