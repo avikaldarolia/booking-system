@@ -36,7 +36,9 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
 				const response = await axios.get("reservations/dates", {
 					params: { employeeId: selectedEmployee.id },
 				});
-				const shiftDates: Date[] = response.data.map((shift: Shift) => new Date(shift.date));
+				const shiftDates: Date[] = response.data?.data?.map(
+					(shift: Shift) => new Date(`${shift.date}T${shift.startTime}`)
+				);
 				setAvailableShiftDates(shiftDates);
 			} catch (error) {
 				console.error("Error fetching available shift dates:", error);
@@ -52,11 +54,11 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
 				const response = await axios.get("reservations/slots", {
 					params: {
 						employeeId: selectedEmployee.id,
-						date: format(selectedDate, "yyyy-MM-dd"),
+						date: selectedDate,
 						duration: selectedDuration,
 					},
 				});
-				setAvailableSlots(response.data);
+				setAvailableSlots(response.data.data);
 			} catch (error) {
 				console.error("Error fetching available slots:", error);
 			}
@@ -101,6 +103,30 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
 		setCustomerPhone(formatted);
 	};
 
+	const isSlotOverlappingWithUnavailable = (slot: TimeSlot) => {
+		if (!selectedDuration) return false; // No duration, no overlap check needed
+
+		// Convert slot startTime to minutes for easier comparison
+		const [startHour, startMinute] = slot.startTime.split(":").map(Number);
+		const slotStartMinutes = startHour * 60 + startMinute;
+
+		// Calculate slot end time with duration
+		const slotEndMinutes = slotStartMinutes + selectedDuration;
+
+		// Check against all unavailable slots
+		return availableSlots.some((otherSlot) => {
+			if (otherSlot.available) return false; // Skip available slots
+
+			const [otherStartHour, otherStartMinute] = otherSlot.startTime.split(":").map(Number);
+			const [otherEndHour, otherEndMinute] = otherSlot.endTime.split(":").map(Number);
+			const otherStartMinutes = otherStartHour * 60 + otherStartMinute;
+			const otherEndMinutes = otherEndHour * 60 + otherEndMinute;
+
+			// Overlap check: slot's range intersects with an unavailable slot
+			return slotStartMinutes < otherEndMinutes && slotEndMinutes > otherStartMinutes;
+		});
+	};
+
 	return (
 		<div className="max-w-5xl mx-auto">
 			<div className="flex items-center mb-12">
@@ -129,21 +155,24 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
 						<div>
 							<label className="block text-gray-700 text-sm font-semibold mb-3">Available Time Slots</label>
 							<div className="grid grid-cols-2 gap-3">
-								{availableSlots.map((slot, index) => (
-									<button
-										key={index}
-										className={`px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
-											slot.available
-												? selectedSlot === slot.startTime
-													? "bg-blue-600 text-white shadow-md"
-													: "bg-blue-50 text-blue-700 hover:bg-blue-100 active:bg-blue-200 border border-gray-400"
-												: "bg-gray-100 text-red-800 border border-red-600 cursor-not-allowed opacity-75"
-										}`}
-										onClick={() => slot.available && setSelectedSlot(slot.startTime)}
-										disabled={!slot.available}>
-										{slot.startTime}
-									</button>
-								))}
+								{availableSlots?.map((slot, index) => {
+									const isOverlapping = isSlotOverlappingWithUnavailable(slot);
+									return (
+										<button
+											key={index}
+											className={`px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
+												slot.available && !isOverlapping
+													? selectedSlot === slot.startTime
+														? "bg-blue-600 text-white shadow-md"
+														: "bg-blue-50 text-blue-700 hover:bg-blue-100 active:bg-blue-200 border border-gray-400"
+													: "bg-gray-100 text-red-800 border border-red-600 cursor-not-allowed opacity-75"
+											}`}
+											onClick={() => slot.available && !isOverlapping && setSelectedSlot(slot.startTime)}
+											disabled={!slot.available && !isOverlapping}>
+											{slot.startTime}
+										</button>
+									);
+								})}
 							</div>
 						</div>
 						<div>

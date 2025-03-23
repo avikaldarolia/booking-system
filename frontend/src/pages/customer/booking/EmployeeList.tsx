@@ -24,7 +24,7 @@ const EmployeeList: React.FC<EmployeeListProps> = ({ employees, selectedService,
 
 			{/* Employee Cards */}
 			<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in">
-				{employees.map((employee) => (
+				{employees?.map((employee) => (
 					<div
 						key={employee.id}
 						className="bg-white backdrop-blur-lg bg-opacity-80 shadow-xl rounded-xl overflow-hidden cursor-pointer border border-gray-300 hover:scale-105 transition-transform duration-300 hover:shadow-2xl"

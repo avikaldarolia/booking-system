@@ -43,7 +43,7 @@ const Schedule = () => {
 
 	const [newShift, setNewShift] = useState({
 		employeeId: "",
-		date: format(new Date(), "yyyy-MM-dd"), // Initialize as "yyyy-MM-dd"
+		date: format(new Date(), "yyyy-MM-dd"),
 		startTime: "09:00",
 		endTime: "17:00",
 		note: "",

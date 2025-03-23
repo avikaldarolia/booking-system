@@ -22,7 +22,7 @@ const CustomerAppointments = () => {
 		const fetchCustomerData = async () => {
 			try {
 				const reservations = await axios.get(`reservations?customerId=${user.id}`);
-				setReservations(reservations.data);
+				setReservations(reservations.data.data);
 				setLoading(false);
 			} catch (error) {
 				console.error("Error fetching customer data:", error);
@@ -53,7 +53,7 @@ const CustomerAppointments = () => {
 		<div className="container mx-auto px-4 py-6">
 			<div className="mb-8">
 				<h1 className="text-2xl font-bold text-gray-800 mb-6">Your Appointments</h1>
-				{reservations.length === 0 ? (
+				{reservations?.length === 0 ? (
 					<div className="bg-white rounded-lg shadow p-6 text-center">
 						<p className="text-gray-500 mb-4">You don't have any appointments scheduled.</p>
 						<Link to="/" className="text-blue-500 hover:text-blue-600 font-medium">
@@ -62,7 +62,7 @@ const CustomerAppointments = () => {
 					</div>
 				) : (
 					<div className="grid gap-6">
-						{reservations.map((reservation) => (
+						{reservations?.map((reservation) => (
 							<div key={reservation.id} className="bg-white rounded-lg shadow p-6">
 								<div className="flex items-start justify-between">
 									<div className="flex items-center">
