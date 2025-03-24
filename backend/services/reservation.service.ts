@@ -1,11 +1,12 @@
-import { Between, Brackets, LessThanOrEqual, MoreThanOrEqual, Raw } from "typeorm";
+import { Between, Brackets, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual, Raw } from "typeorm";
 import { AppDataSource } from "../data-source";
 import { Shift } from "../entities/Shift";
-import { add, Duration, endOfDay, format, parseISO, startOfDay } from "date-fns";
+import { add, format, startOfDay } from "date-fns";
 import { Employee } from "../entities/Employee";
 import { Reservation, ReservationStatus } from "../entities/Reservation";
 import { Customer } from "../entities/Customer";
 import { User } from "../types/types";
+import * as utils from "../utils/utils";
 
 const reservationRepository = AppDataSource.getRepository(Reservation);
 const shiftRepository = AppDataSource.getRepository(Shift);
@@ -50,10 +51,13 @@ export const CreateReservation = async (
 
 		let customer = await customerRepository.findOne({ where: { email, phone } });
 
-		const startDateTime = new Date(`${date}T${startTime}:00`);
-		const durationMinutes = parseInt(duration ?? DEFAULT_DURATION, 10);
+		let adjustedDate = utils.localeDate(date);
+		const adjustDateString = format(adjustedDate, "yyyy-MM-dd");
 
-		const endDateTime = add(startDateTime, { minutes: durationMinutes });
+		const durationMinutes = parseInt(duration ?? DEFAULT_DURATION, 10);
+		const endDateTime = add(new Date(`${adjustDateString}T${startTime}:00`), { minutes: durationMinutes });
+		console.log("Calculated end time: ");
+
 		const endTime = format(endDateTime, "HH:mm");
 
 		if (!customer) {
@@ -69,9 +73,9 @@ export const CreateReservation = async (
 		const existingReservations = await reservationRepository.find({
 			where: {
 				employee: { id: employeeId },
-				date: startDateTime,
-				startTime: LessThanOrEqual(endTime),
-				endTime: MoreThanOrEqual(startTime),
+				date: adjustedDate,
+				startTime: LessThan(endTime),
+				endTime: MoreThan(startTime),
 			},
 		});
 
@@ -81,7 +85,7 @@ export const CreateReservation = async (
 		const reservation = reservationRepository.create({
 			employee,
 			customer,
-			date: startDateTime,
+			date: adjustedDate,
 			startTime,
 			endTime,
 			duration: durationMinutes,
@@ -91,10 +95,9 @@ export const CreateReservation = async (
 
 		await reservationRepository.save(reservation);
 
-		return reservation;
+		return utils.serviceResponse(true, reservation, "");
 	} catch (error) {
-		console.error("Error creating reservation:", error);
-		throw new Error(`Failed to create reservation: ${error instanceof Error && error.message}`);
+		throw error;
 	}
 };
 
@@ -122,19 +125,27 @@ export const GetAvailableDates = async (employeeId: string, storeId?: string) =>
 
 		query.andWhere("shift.date >= :today", { today });
 
-		return await query.getMany();
+		const result = utils.parseSafe(await query.getMany());
+		return utils.serviceResponse(true, result, "");
 	} catch (error) {
-		throw new Error(`Failed to fetch shift: ${error instanceof Error && error.message}`);
+		throw error;
 	}
 };
 
-export const GetAvailableSlotsOnDate = async (employeeId: string, date: string) => {
+export const GetAvailableSlotsOnDate = async (employeeId: string, date: string, duration?: string) => {
 	try {
+		if (!date) {
+			throw new Error("Date is required.");
+		}
+
+		const parsedDate = utils.localeDate(date);
+		const targetDateString = format(parsedDate, "yyyy-MM-dd");
+
 		const employee = await employeeRepository
 			.createQueryBuilder("employee")
 			.leftJoinAndSelect("employee.shifts", "shift")
 			.where("employee.id = :employeeId", { employeeId })
-			.andWhere("DATE(shift.date) = :date", { date: date.split("T")[0] })
+			.andWhere("DATE(shift.date) = :date", { date: targetDateString })
 			.getOne();
 
 		if (!employee) {
@@ -145,17 +156,16 @@ export const GetAvailableSlotsOnDate = async (employeeId: string, date: string) 
 			throw new Error("No shift found.");
 		}
 
-		// Using the shift date
-		const targetDate = employee.shifts[0].date;
-
-		const existingReservations = await reservationRepository.find({
-			where: {
-				employee: { id: employeeId },
-				date: targetDate,
-				status: ReservationStatus.CONFIRMED,
-			},
-			order: { startTime: "ASC" },
-		});
+		const existingReservations = utils.parseSafe(
+			await reservationRepository.find({
+				where: {
+					employee: { id: employeeId },
+					date: parsedDate,
+					status: ReservationStatus.CONFIRMED,
+				},
+				order: { startTime: "ASC" },
+			})
+		);
 
 		const shiftStartTime = employee.shifts[0].startTime;
 		const shiftEndTime = employee.shifts[0].endTime;
@@ -167,24 +177,32 @@ export const GetAvailableSlotsOnDate = async (employeeId: string, date: string) 
 		const [shiftOpenHour, shiftOpenMinute] = shiftStartTime.split(":").map(Number);
 		const [shiftCloseHour, shiftCloseMinute] = shiftEndTime.split(":").map(Number);
 
-		let currentSlot = new Date(targetDate);
-		currentSlot.setHours(shiftOpenHour, shiftOpenMinute, 0);
+		let currentSlot = new Date(parsedDate);
 
-		const endTime = new Date(targetDate);
-		endTime.setHours(shiftCloseHour, shiftCloseMinute, 0);
+		currentSlot.setHours(shiftOpenHour, shiftOpenMinute, 0, 0);
+
+		const endTime = parsedDate;
+		endTime.setHours(shiftCloseHour, shiftCloseMinute, 0, 0);
 
 		while (currentSlot < endTime) {
 			const slotEnd = new Date(currentSlot);
 			slotEnd.setMinutes(slotEnd.getMinutes() + slotDuration);
 
+			// Check if this slots, end time with the duration of service requested overlaps some reservation or not.
+			const slotEndWithService = new Date(currentSlot);
+			if (duration) {
+				slotEndWithService.setMinutes(slotEndWithService.getMinutes() + Number(duration));
+			}
+
 			if (slotEnd > endTime) break;
 
-			const isAvailable = !existingReservations.some((reservation) => {
+			const isAvailable = !existingReservations.some((reservation: Reservation) => {
 				const reservationStart = new Date(`${reservation.date}T${reservation.startTime}`);
 				const reservationEnd = new Date(`${reservation.date}T${reservation.endTime}`);
 				return (
-					(currentSlot >= reservationStart && currentSlot < reservationEnd) ||
-					(slotEnd > reservationStart && slotEnd <= reservationEnd)
+					(currentSlot > reservationStart && currentSlot < reservationEnd) ||
+					(slotEnd > reservationStart && slotEnd < reservationEnd) ||
+					(duration && slotEndWithService > reservationStart && slotEndWithService < reservationEnd)
 				);
 			});
 
@@ -197,9 +215,9 @@ export const GetAvailableSlotsOnDate = async (employeeId: string, date: string) 
 			currentSlot = slotEnd;
 		}
 
-		return slots;
+		return utils.serviceResponse(true, slots, "");
 	} catch (error) {
-		throw new Error(`Failed to get available slots: ${error instanceof Error && error.message}`);
+		throw error;
 	}
 };
 
@@ -214,10 +232,10 @@ export const GetReservations = async (
 	try {
 		const query = buildReservationQuery(employeeId, customerId, user, startDate, endDate, status);
 
-		const reservations = query.getMany();
-		return reservations;
+		const reservations = utils.parseSafe(await query.getMany());
+		return utils.serviceResponse(true, reservations, "");
 	} catch (error) {
-		throw new Error(`Failed to fetch shift: ${error instanceof Error && error.message}`);
+		throw error;
 	}
 };
 

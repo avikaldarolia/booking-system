@@ -19,11 +19,15 @@ const BookingProcess = ({ services, onBookingSuccess }: BookingProcessProps) => 
 	const [selectedService, setSelectedService] = useState<Service | null>(null);
 	const [loading, setLoading] = useState(true);
 
+	const storeId = import.meta.env.VITE_STORE_ID;
+
 	useEffect(() => {
 		const fetchEmployees = async () => {
 			try {
-				const response = await axios.get("employees");
-				setEmployees(response.data);
+				const response = await axios.get(`employees?storeId=${storeId}`);
+				if (response.data.success) {
+					setEmployees(response.data.data);
+				}
 				setLoading(false);
 			} catch (error) {
 				console.error("Error fetching employees:", error);

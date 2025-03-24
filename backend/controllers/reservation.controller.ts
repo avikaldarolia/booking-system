@@ -1,5 +1,5 @@
 import * as utils from "../utils/utils";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { AppDataSource } from "../data-source";
 import { Reservation, ReservationStatus } from "../entities/Reservation";
 import { Employee } from "../entities/Employee";
@@ -43,7 +43,7 @@ export const getReservationById = async (req: Request, res: Response) => {
 	}
 };
 
-export const createReservation = utils.asyncMiddleware(async (req: Request, res: Response) => {
+export const createReservation = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { employeeId, name, email, phone, date, startTime, duration, notes } = req.body;
 
@@ -58,14 +58,13 @@ export const createReservation = utils.asyncMiddleware(async (req: Request, res:
 			notes
 		);
 
-		return res.status(201).json(reservation);
+		return utils.sendResponse(req, res, reservation.success, reservation.data, reservation.err);
 	} catch (error) {
-		console.error("Error creating reservation:", error);
-		return res.status(500).json({ message: "Internal server error" });
+		next(error);
 	}
 });
 
-export const getAllReservations = utils.asyncMiddleware(async (req: Request, res: Response) => {
+export const getAllReservations = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { employeeId, customerId, startDate, endDate, status } = req.query;
 		const user = req.user;
@@ -83,10 +82,9 @@ export const getAllReservations = utils.asyncMiddleware(async (req: Request, res
 			status as ReservationStatus
 		);
 
-		return res.status(200).json(reservations);
+		return utils.sendResponse(req, res, reservations.success, reservations.data, reservations.err);
 	} catch (error) {
-		console.error("Error fetching reservations:", error);
-		return res.status(500).json({ message: "Internal server error" });
+		next(error);
 	}
 });
 
@@ -133,10 +131,12 @@ export const cancelReservation = async (req: Request, res: Response) => {
 		return res.status(500).json({ message: "Internal server error" });
 	}
 };
-export const getAvailableSlots = utils.asyncMiddleware(async (req: Request, res: Response) => {
+export const getAvailableSlots = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { employeeId, date } = req.query;
 		const slots = await ReservationService.GetAvailableSlotsOnDate(employeeId as string, date as string);
-		return res.status(200).json(slots);
-	} catch (error) {}
+		return utils.sendResponse(req, res, slots.success, slots.data, slots.err);
+	} catch (error) {
+		next(error);
+	}
 });

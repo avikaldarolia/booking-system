@@ -67,7 +67,7 @@ const CalendarComponent: React.FC<CalendarProps> = ({ availableDates, selectedDa
 					<div
 						key={index}
 						className={getDateClasses(date)}
-						onClick={() => date && availableDates.some((d) => isSameDay(d, date)) && onSelectDate(date)}>
+						onClick={() => date && availableDates.some((d) => isSameDay(new Date(d), date)) && onSelectDate(date)}>
 						{date ? date.getDate() : ""}
 					</div>
 				))}
