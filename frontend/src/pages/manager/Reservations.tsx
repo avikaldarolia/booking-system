@@ -40,7 +40,7 @@ const Reservations = () => {
 						status: statusFilter !== "all" ? statusFilter : undefined,
 					},
 				});
-				setReservations(response.data);
+				setReservations(response.data.data);
 				setLoading(false);
 			} catch (error) {
 				console.error("Error fetching reservations:", error);
