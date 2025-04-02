@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import * as utils from "../utils/utils";
-import * as weeklyStatsService from "../services/weeklyStats.service";
+import * as weeklyStatsService from "../services/weekly-employee-stats.service";
 
 export const getWeeklyStats = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 	try {

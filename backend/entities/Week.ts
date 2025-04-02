@@ -1,7 +1,7 @@
 import { Column, Entity, Index, ManyToOne, OneToMany, PrimaryGeneratedColumn, RelationId } from "typeorm";
 import { BaseEntity } from "../types/base-entity";
 import { Store } from "./Store";
-import { WeeklyStats } from "./WeeklyStats";
+import { WeeklyEmployeeStats } from "./WeeklyEmployeeStats";
 import { Shift } from "./Shift";
 
 @Entity()
@@ -16,11 +16,11 @@ export class Week extends BaseEntity {
 	@ManyToOne(() => Store, (store) => store.weeklyBudget)
 	store: Store;
 
-	@OneToMany(() => WeeklyStats, (weeklyStats) => weeklyStats.week, {
+	@OneToMany(() => WeeklyEmployeeStats, (weeklyEmployeeStats) => weeklyEmployeeStats.week, {
 		onDelete: "CASCADE",
 		cascade: ["soft-remove"],
 	})
-	weeklystats: WeeklyStats[];
+	weeklyEmployeeStats: WeeklyEmployeeStats[];
 
 	@OneToMany(() => Shift, (shifts) => shifts.week, {
 		onDelete: "CASCADE",
@@ -42,4 +42,7 @@ export class Week extends BaseEntity {
 
 	@Column("decimal", { default: 0 })
 	hours: number;
+
+	@Column("decimal", { default: 0 })
+	revenue: number;
 }

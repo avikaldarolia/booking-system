@@ -86,4 +86,5 @@ export interface WeekStats {
 	cost: number;
 	budget: number;
 	hours: number;
+	revenue: number;
 }

@@ -1,11 +1,11 @@
 import { AppDataSource } from "../data-source";
-import { WeeklyStats } from "../entities/WeeklyStats";
+import { WeeklyEmployeeStats } from "../entities/WeeklyEmployeeStats";
 import { Store } from "../entities/Store";
 import { Between } from "typeorm";
 import { startOfWeek, endOfWeek, subWeeks } from "date-fns";
 import * as utils from "../utils/utils";
 
-const weeklyStatsRepository = AppDataSource.getRepository(WeeklyStats);
+const weeklyStatsRepository = AppDataSource.getRepository(WeeklyEmployeeStats);
 const storeRepository = AppDataSource.getRepository(Store);
 
 export const GetWeeklyStats = async (storeId: string, weekId: string) => {
@@ -33,23 +33,23 @@ export const GetWeeklyStats = async (storeId: string, weekId: string) => {
 
 export const UpdateWeeklyStats = async (id: string, budgetAllocated: number, notes: string) => {
 	try {
-		const weeklyStats = await weeklyStatsRepository.findOne({ where: { id } });
+		const weeklyEmployeeStats = await weeklyStatsRepository.findOne({ where: { id } });
 
-		if (!weeklyStats) {
+		if (!weeklyEmployeeStats) {
 			throw new Error("Weekly stats not found");
 		}
 
 		// Calculate new budget remaining
-		const budgetDiff = Number(budgetAllocated) - Number(weeklyStats.budgetAllocated);
-		const newBudgetRemaining = Number(weeklyStats.budgetRemaining) + budgetDiff;
+		const budgetDiff = Number(budgetAllocated) - Number(weeklyEmployeeStats.budgetAllocated);
+		const newBudgetRemaining = Number(weeklyEmployeeStats.budgetRemaining) + budgetDiff;
 
-		weeklyStatsRepository.merge(weeklyStats, {
+		weeklyStatsRepository.merge(weeklyEmployeeStats, {
 			budgetAllocated,
 			budgetRemaining: newBudgetRemaining,
 			notes,
 		});
 
-		const updatedStats = await weeklyStatsRepository.save(weeklyStats);
+		const updatedStats = await weeklyStatsRepository.save(weeklyEmployeeStats);
 		return updatedStats;
 	} catch (error) {
 		console.error("Error in updateWeeklyStats service:", error);
@@ -64,7 +64,7 @@ export const UpdateWeeklyStats = async (id: string, budgetAllocated: number, not
 // 		const endDate = endOfWeek(currentDate);
 // 		const startDate = startOfWeek(subWeeks(currentDate, numWeeks - 1));
 
-// 		const weeklyStats = await weeklyStatsRepository.find({
+// 		const weeklyEmployeeStats = await weeklyStatsRepository.find({
 // 			where: {
 // 				store: { id: storeId },
 // 				weekStartDate: Between(startDate, endDate),
@@ -75,7 +75,7 @@ export const UpdateWeeklyStats = async (id: string, budgetAllocated: number, not
 // 			relations: ["store"],
 // 		});
 
-// 		return weeklyStats;
+// 		return weeklyEmployeeStats;
 // 	} catch (error) {
 // 		console.error("Error in getWeeklyStatsHistory service:", error);
 // 		throw new Error("Internal server error");

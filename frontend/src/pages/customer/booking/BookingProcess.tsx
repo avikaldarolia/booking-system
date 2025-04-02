@@ -35,7 +35,7 @@ const BookingProcess = ({ services, onBookingSuccess }: BookingProcessProps) => 
 			}
 		};
 		fetchEmployees();
-	}, []);
+	}, [storeId]);
 
 	const handleServiceSelect = (service: Service) => {
 		setSelectedService(service);

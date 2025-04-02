@@ -3,16 +3,11 @@ import { BarChart2, Calendar, Clock, DollarSign, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Spinner from "../../components/Spinner";
+import { Employee, WeekStats } from "../../types";
 
 const Dashboard = () => {
-	const [stats, setStats] = useState({
-		totalEmployees: 0,
-		weeklyBudget: 0,
-		budgetSpent: 0,
-		budgetRemaining: 0,
-		totalHours: 0,
-		shiftsScheduled: 0,
-	});
+	const [weekStats, setWeekStats] = useState<WeekStats | null>(null);
+	const [employees, setEmployees] = useState<Employee[] | null>(null);
 
 	const [loading, setLoading] = useState(true);
 
@@ -21,29 +16,19 @@ const Dashboard = () => {
 	useEffect(() => {
 		const fetchDashboardData = async () => {
 			try {
-				const currentDate = new Date();
-
 				// Fetch employees count
 				const employeesResponse = await axios.get(`employees?storeId=${storeId}`);
-
-				// Fetch weekly stats
-				const weeklyStatsResponse = await axios.get(
-					`weekly-stats?storeId=${storeId}&date=${currentDate.toISOString()}`
-				);
-
+				setEmployees(employeesResponse.data.data);
 				// Fetch shifts for the current week
+				const currentDate = new Date();
 				const weekStart = format(startOfWeek(currentDate), "yyyy-MM-dd");
 				const weekEnd = format(endOfWeek(currentDate), "yyyy-MM-dd");
-				const shiftsResponse = await axios.get(`shifts?storeId=${storeId}&startDate=${weekStart}&endDate=${weekEnd}`);
 
-				setStats({
-					totalEmployees: employeesResponse.data.length,
-					weeklyBudget: weeklyStatsResponse.data.budgetAllocated,
-					budgetSpent: weeklyStatsResponse.data.totalCost,
-					budgetRemaining: weeklyStatsResponse.data.budgetRemaining,
-					totalHours: weeklyStatsResponse.data.totalHours,
-					shiftsScheduled: shiftsResponse.data.length,
-				});
+				const weekResponse = await axios.get(`week?storeId=${storeId}&startDate=${weekStart}&endDate=${weekEnd}`);
+
+				if (weekResponse.data.success) {
+					setWeekStats(weekResponse.data.data);
+				}
 
 				setLoading(false);
 			} catch (error) {
@@ -83,7 +68,7 @@ const Dashboard = () => {
 						</div>
 						<div>
 							<p className="text-gray-500 text-sm">Total Employees</p>
-							<p className="text-2xl font-semibold">{stats.totalEmployees}</p>
+							<p className="text-2xl font-semibold">{employees?.length || 0}</p>
 						</div>
 					</div>
 				</div>
@@ -95,7 +80,7 @@ const Dashboard = () => {
 						</div>
 						<div>
 							<p className="text-gray-500 text-sm">Weekly Budget</p>
-							<p className="text-2xl font-semibold">${stats.weeklyBudget}</p>
+							<p className="text-2xl font-semibold">${weekStats?.budget}</p>
 						</div>
 					</div>
 				</div>
@@ -107,7 +92,7 @@ const Dashboard = () => {
 						</div>
 						<div>
 							<p className="text-gray-500 text-sm">Total Hours</p>
-							<p className="text-2xl font-semibold">{stats.totalHours}</p>
+							<p className="text-2xl font-semibold">{weekStats?.hours}</p>
 						</div>
 					</div>
 				</div>
@@ -119,7 +104,7 @@ const Dashboard = () => {
 						</div>
 						<div>
 							<p className="text-gray-500 text-sm">Shifts Scheduled</p>
-							<p className="text-2xl font-semibold">{stats.shiftsScheduled}</p>
+							<p className="text-2xl font-semibold">{weekStats?.revenue || 0}</p>
 						</div>
 					</div>
 				</div>
@@ -130,23 +115,27 @@ const Dashboard = () => {
 					<h2 className="text-lg font-semibold mb-4">Budget Overview</h2>
 					<div className="mb-4">
 						<div className="flex justify-between mb-1">
-							<span className="text-gray-600">Spent: ${stats.budgetSpent}</span>
-							<span className="text-gray-600">{Math.round((stats.budgetSpent / stats.weeklyBudget) * 100)}%</span>
+							<span className="text-gray-600">Spent: ${weekStats?.cost || "N/A"}</span>
+							<span className="text-gray-600">
+								{weekStats?.budget ? `${((weekStats?.cost / weekStats?.budget) * 100).toFixed(2)}%` : "N/A"}
+							</span>
 						</div>
 						<div className="w-full bg-gray-200 rounded-full h-2.5">
 							<div
 								className="bg-blue-500 h-2.5 rounded-full"
-								style={{ width: `${(stats.budgetSpent / stats.weeklyBudget) * 100}%` }}></div>
+								style={{
+									width: `${weekStats?.budget ? Math.min((weekStats?.cost / weekStats?.budget) * 100, 100) : 0}%`,
+								}}></div>
 						</div>
 					</div>
 					<div className="flex justify-between text-sm">
 						<div>
 							<p className="text-gray-500">Total Budget</p>
-							<p className="font-semibold">${stats.weeklyBudget}</p>
+							<p className="font-semibold">${weekStats?.budget}</p>
 						</div>
 						<div>
 							<p className="text-gray-500">Remaining</p>
-							<p className="font-semibold">${stats.budgetRemaining}</p>
+							<p className="font-semibold">${weekStats?.budget ? weekStats.budget - weekStats.cost : "N/A"}</p>
 						</div>
 					</div>
 				</div>
