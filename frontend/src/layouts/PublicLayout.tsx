@@ -16,11 +16,9 @@ export default function PublicLayout({ children }: LayoutProps) {
 	}
 
 	return (
-		<div className="min-h-screen flex flex-col bg-gray-200">
+		<div className="min-h-screen  w-full flex flex-col bg-black">
 			<CustomerHeader />
-			<main className="flex-1 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
-				{children || <Outlet />}
-			</main>
+			<main className="flex-1 flex items-center justify-center">{children || <Outlet />}</main>
 		</div>
 	);
 }

@@ -16,13 +16,15 @@ const EmployeeList: React.FC<EmployeeListProps> = ({ employees, selectedService,
 			<div className="flex items-center mb-10">
 				<button
 					onClick={onBack}
-					className="mr-4 text-blue-600 hover:text-blue-700 bg-white shadow-md p-2 rounded-full transition-all duration-300 hover:scale-110">
+					className="mr-4 text-blue-600 hover:text-blue-700 p-2 rounded-full transition-all duration-300 hover:scale-110">
 					<ChevronLeft className="h-6 w-6" />
 				</button>
-				<h2 className="text-4xl font-bold text-gray-900">Choose Your Stylist</h2>
+				<div className="">
+					<h2 className="text-4xl font-bold text-gray-900">Choose Your Stylist</h2>
+					<p className="font-semibold text-blue-600 text-xl">Style: {selectedService}</p>
+				</div>
 			</div>
 
-			<p className="font-semibold text-2xl">Cut Requested: {selectedService}</p>
 			{/* Employee Cards */}
 			<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in p-3">
 				{employees?.map((employee) => (

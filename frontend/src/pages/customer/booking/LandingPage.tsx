@@ -19,7 +19,7 @@ const LandingPage = () => {
 		}
 	}, [navigate, user]);
 	return (
-		<div className="min-h-screen flex flex-col bg-gray-50">
+		<div className="min-h-screen w-full flex flex-col bg-gray-200">
 			{/* Show Hero Section only if booking is NOT active */}
 			{!isBookingActive && <HeroSection onBookNow={() => setIsBookingActive(true)} />}
 

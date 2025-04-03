@@ -94,7 +94,7 @@ const BookingProcess = ({ services, onBookingSuccess }: BookingProcessProps) => 
 
 			{/* Step 2: Employee Selection */}
 			{step === 2 && selectedService && (
-				<div className="bg-gray-100 rounded-xl p-6 transition-all duration-300">
+				<div className="p-6 transition-all duration-300">
 					<EmployeeList
 						employees={employees}
 						selectedService={selectedService.name}
@@ -106,7 +106,7 @@ const BookingProcess = ({ services, onBookingSuccess }: BookingProcessProps) => 
 
 			{/* Step 3: Booking Calendar */}
 			{step === 3 && selectedEmployee && selectedService && (
-				<div className="bg-gray-100 rounded-xl p-6 transition-all duration-300">
+				<div className="p-6 transition-all duration-300">
 					<BookingCalendar
 						selectedEmployee={selectedEmployee}
 						selectedDuration={parseInt(selectedService.duration.split(" ")[0])}
