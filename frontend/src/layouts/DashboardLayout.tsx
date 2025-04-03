@@ -13,9 +13,9 @@ export default function DashboardLayout({ children }: LayoutProps) {
 		user?.role && RoleBasedRenderHash[user.role].sidebar() ? RoleBasedRenderHash[user.role].sidebar() : null;
 
 	return (
-		<div className="flex min-h-screen w-full overflow-y-hidden">
+		<div className="flex h-screen w-full overflow-y-hidden">
 			{user && sidebar}
-			<main className="flex flex-col w-full">
+			<main className="flex flex-col w-full bg-gray-200">
 				{user && <Header />}
 				<div className="overflow-y-hidden">{children}</div>
 			</main>

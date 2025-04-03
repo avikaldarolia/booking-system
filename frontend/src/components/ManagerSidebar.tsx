@@ -3,7 +3,7 @@ import { Calendar, Users, BarChart2, Settings, Home, Clock, CalendarCheck } from
 
 const ManagerSidebar = () => {
 	return (
-		<div className="bg-black text-white w-64 flex flex-col h-full">
+		<div className="bg-black text-white w-72 flex flex-col h-full">
 			<div className="p-4 flex items-center space-x-2">
 				<Calendar className="h-8 w-8 text-blue-400" />
 				<h1 className="text-xl font-bold">Shift Scheduler</h1>
