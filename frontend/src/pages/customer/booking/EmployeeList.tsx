@@ -19,11 +19,12 @@ const EmployeeList: React.FC<EmployeeListProps> = ({ employees, selectedService,
 					className="mr-4 text-blue-600 hover:text-blue-700 bg-white shadow-md p-2 rounded-full transition-all duration-300 hover:scale-110">
 					<ChevronLeft className="h-6 w-6" />
 				</button>
-				<h2 className="text-4xl font-bold text-gray-900">Choose Your Stylist for {selectedService}</h2>
+				<h2 className="text-4xl font-bold text-gray-900">Choose Your Stylist</h2>
 			</div>
 
+			<p className="font-semibold text-2xl">Cut Requested: {selectedService}</p>
 			{/* Employee Cards */}
-			<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in">
+			<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in p-3">
 				{employees?.map((employee) => (
 					<div
 						key={employee.id}
@@ -53,7 +54,6 @@ const EmployeeList: React.FC<EmployeeListProps> = ({ employees, selectedService,
 									<span className="ml-1 text-gray-700 text-sm font-medium">{employee.rating}</span>
 								</div>
 							</div>
-							<p className="text-blue-600 font-semibold text-lg mt-4">${employee.hourlyRate}/hr</p>
 						</div>
 					</div>
 				))}
