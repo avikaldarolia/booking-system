@@ -1,23 +1,19 @@
 import { AppDataSource } from "../data-source";
 import { WeeklyEmployeeStats } from "../entities/WeeklyEmployeeStats";
-import { Store } from "../entities/Store";
-import { Between } from "typeorm";
-import { startOfWeek, endOfWeek, subWeeks } from "date-fns";
 import * as utils from "../utils/utils";
 
-const weeklyStatsRepository = AppDataSource.getRepository(WeeklyEmployeeStats);
-const storeRepository = AppDataSource.getRepository(Store);
+const weeklyEmployeeStatsRepository = AppDataSource.getRepository(WeeklyEmployeeStats);
 
 export const GetWeeklyStats = async (storeId: string, weekId: string) => {
 	try {
-		let stats;
+		let stats: WeeklyEmployeeStats;
 
 		if (!weekId) {
 			throw new Error("Week id is required.");
 		}
 
 		stats = utils.parseSafe(
-			await weeklyStatsRepository.find({
+			await weeklyEmployeeStatsRepository.find({
 				where: {
 					week: { id: weekId },
 					store: { id: storeId },
@@ -25,37 +21,38 @@ export const GetWeeklyStats = async (storeId: string, weekId: string) => {
 				relations: ["employee"],
 			})
 		);
+
 		return utils.serviceResponse(true, stats, "");
 	} catch (error) {
 		throw error;
 	}
 };
 
-export const UpdateWeeklyStats = async (id: string, budgetAllocated: number, notes: string) => {
-	try {
-		const weeklyEmployeeStats = await weeklyStatsRepository.findOne({ where: { id } });
+// export const UpdateWeeklyStats = async (id: string, budgetAllocated: number, notes: string) => {
+// 	try {
+// 		const weeklyEmployeeStats = await weeklyStatsRepository.findOne({ where: { id } });
 
-		if (!weeklyEmployeeStats) {
-			throw new Error("Weekly stats not found");
-		}
+// 		if (!weeklyEmployeeStats) {
+// 			throw new Error("Weekly stats not found");
+// 		}
 
-		// Calculate new budget remaining
-		const budgetDiff = Number(budgetAllocated) - Number(weeklyEmployeeStats.budgetAllocated);
-		const newBudgetRemaining = Number(weeklyEmployeeStats.budgetRemaining) + budgetDiff;
+// 		// Calculate new budget remaining
+// 		const budgetDiff = Number(budgetAllocated) - Number(weeklyEmployeeStats.budgetAllocated);
+// 		const newBudgetRemaining = Number(weeklyEmployeeStats.budgetRemaining) + budgetDiff;
 
-		weeklyStatsRepository.merge(weeklyEmployeeStats, {
-			budgetAllocated,
-			budgetRemaining: newBudgetRemaining,
-			notes,
-		});
+// 		weeklyStatsRepository.merge(weeklyEmployeeStats, {
+// 			budgetAllocated,
+// 			budgetRemaining: newBudgetRemaining,
+// 			notes,
+// 		});
 
-		const updatedStats = await weeklyStatsRepository.save(weeklyEmployeeStats);
-		return updatedStats;
-	} catch (error) {
-		console.error("Error in updateWeeklyStats service:", error);
-		throw new Error("Internal server error");
-	}
-};
+// 		const updatedStats = await weeklyStatsRepository.save(weeklyEmployeeStats);
+// 		return updatedStats;
+// 	} catch (error) {
+// 		console.error("Error in updateWeeklyStats service:", error);
+// 		throw new Error("Internal server error");
+// 	}
+// };
 
 // export const GetWeeklyStatsHistory = async (storeId: string, weeks: string) => {
 // 	try {

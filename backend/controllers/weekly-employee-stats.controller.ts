@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import * as utils from "../utils/utils";
 import * as weeklyStatsService from "../services/weekly-employee-stats.service";
 
-export const getWeeklyStats = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
+export const getWeeklyEmployeeStats = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { storeId, weekId } = req.query;
 
@@ -17,18 +17,18 @@ export const getWeeklyStats = utils.asyncMiddleware(async (req: Request, res: Re
 	}
 });
 
-export const updateWeeklyStats = utils.asyncMiddleware(async (req: Request, res: Response) => {
-	try {
-		const { id } = req.params;
-		const { budgetAllocated, notes } = req.body;
+// export const updateWeeklyStats = utils.asyncMiddleware(async (req: Request, res: Response) => {
+// 	try {
+// 		const { id } = req.params;
+// 		const { budgetAllocated, notes } = req.body;
 
-		const updatedStats = await weeklyStatsService.UpdateWeeklyStats(id, budgetAllocated, notes);
-		return res.status(200).json(updatedStats);
-	} catch (error) {
-		console.error("Error updating weekly stats:", error);
-		return res.status(500).json({ message: "Internal server error" });
-	}
-});
+// 		const updatedStats = await weeklyStatsService.UpdateWeeklyStats(id, budgetAllocated, notes);
+// 		return res.status(200).json(updatedStats);
+// 	} catch (error) {
+// 		console.error("Error updating weekly stats:", error);
+// 		return res.status(500).json({ message: "Internal server error" });
+// 	}
+// });
 
 // export const getWeeklyStatsHistory = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 // 	try {

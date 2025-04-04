@@ -1,10 +1,13 @@
 import { Router } from "express";
-import { getWeeklyStats, updateWeeklyStats } from "../controllers/weekly-employee-stats.controller";
+import { getWeeklyEmployeeStats } from "../controllers/weekly-employee-stats.controller";
+import { authenticate, authorize } from "../middleware/auth.middleware";
 
 const router = Router();
 
-router.get("/", getWeeklyStats);
+router.use(authenticate);
+
+router.get("/", authorize(["manager", "associate", "part_time"]), getWeeklyEmployeeStats);
 // router.get("/history", getWeeklyStatsHistory);
-router.put("/:id", updateWeeklyStats);
+// router.put("/:id", updateWeeklyStats);
 
 export default router;

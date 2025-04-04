@@ -1,12 +1,13 @@
 import axios from "axios";
 import { addWeeks, endOfWeek, format, startOfWeek, subWeeks } from "date-fns";
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, DollarSign, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Spinner from "../../components/Spinner";
 import { Calendar as BigCalendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { WeeklyEmployeeStats, WeekStats } from "../../types";
+import { debounce } from "../../utils/utils";
 
 const localizer = momentLocalizer(moment);
 
@@ -95,42 +96,70 @@ const Schedule = () => {
 	useEffect(() => {
 		const fetchScheduleData = async () => {
 			setLoading(true);
-			if (!weekStats?.id) {
-				return;
-			}
 			try {
-				// Fetch shifts for that week.
-				const shiftRes = await axios.get(
-					`shifts/weekly?storeId=${storeId}&date=${currentDate}&weekId=${weekStats?.id}`
-				);
+				const weekStart = format(startOfWeek(currentDate), "yyyy-MM-dd");
+				const weekEnd = format(endOfWeek(currentDate), "yyyy-MM-dd");
 
-				if (shiftRes.data.success) {
-					setShifts(shiftRes.data.data);
+				// Fetch week stats
+				const weekResponse = await axios.get(`week?storeId=${storeId}&startDate=${weekStart}&endDate=${weekEnd}`);
+				const weekData = weekResponse.data.success ? weekResponse.data.data : null;
+				setWeekStats(weekData);
+
+				// Fetch employees
+				const employeesResponse = await axios.get(`employees?storeId=${storeId}`);
+				const employeeData = employeesResponse.data.success ? employeesResponse.data.data : [];
+				setEmployees(employeeData);
+
+				if (weekData?.id) {
+					// Fetch shifts
+					const shiftRes = await axios.get(`shifts/weekly?storeId=${storeId}&date=${weekStart}&weekId=${weekData.id}`);
+					setShifts(shiftRes.data.success ? shiftRes.data.data : []);
+
+					// Fetch weekly employee stats
+					const statsRes = await axios.get(`weekly-stats?weekId=${weekData.id}&storeId=${storeId}`);
+					console.log(statsRes.data);
+
+					setWeeklyEmployeeStats(statsRes.data.success ? statsRes.data.data : []);
 				}
-
-				// Fetch emp stats for the week.
-				const weeklyEmployeeStats = await axios.get(`weekly-stats?weekId=${weekStats?.id}&storeId=${storeId}`);
-				if (weeklyEmployeeStats.data.success) {
-					setWeeklyEmployeeStats(weeklyEmployeeStats.data.data);
-				}
-
-				setLoading(false);
 			} catch (error) {
 				console.error("Error fetching schedule data:", error);
+			} finally {
 				setLoading(false);
 			}
 		};
 
 		fetchScheduleData();
-	}, [currentDate, storeId, weekStats?.id]);
+	}, [currentDate, storeId, showAddShift]);
 
-	const handlePreviousWeek = () => {
+	const events = useMemo(() => {
+		return shifts?.map((shift) => {
+			return {
+				id: shift.id,
+				title: `${shift?.employee?.name} (${shift?.employee?.type})`,
+				start: new Date(`${shift.date}T${shift.startTime}`),
+				end: new Date(`${shift.date}T${shift.endTime}`),
+				resource: shift,
+			};
+		});
+	}, [shifts]);
+
+	const mergedEmployees = useMemo(() => {
+		return employees?.map((emp) => {
+			const stats = weeklyEmployeeStats?.find((stat) => stat.employee.id === emp.id);
+			return {
+				...emp,
+				currentHours: stats?.empHours ?? 0,
+			};
+		});
+	}, [employees, weeklyEmployeeStats]);
+
+	const handlePreviousWeek = debounce(() => {
 		setCurrentDate(subWeeks(currentDate, 1));
-	};
+	}, 300);
 
-	const handleNextWeek = () => {
+	const handleNextWeek = debounce(() => {
 		setCurrentDate(addWeeks(currentDate, 1));
-	};
+	}, 300);
 
 	const validateForm = () => {
 		const newErrors: { [key: string]: string } = {};
@@ -167,7 +196,7 @@ const Schedule = () => {
 				return;
 			}
 
-			setShifts([...shifts, response.data.data]);
+			setShifts((prev) => [...prev, response.data.data]);
 			setShowAddShift(false);
 			setNewShift({
 				employeeId: "",
@@ -176,12 +205,6 @@ const Schedule = () => {
 				endTime: "17:00",
 				note: "",
 			});
-
-			// Refresh employees -> Get weeklystats
-			const weeklyEmployeeStats = await axios.get(`weekly-stats?weekId=${weekStats?.id}&storeId=${storeId}`);
-			if (weeklyEmployeeStats.data.success) {
-				setWeeklyEmployeeStats(weeklyEmployeeStats.data.data);
-			}
 		} catch (error) {
 			console.error("Error adding shift:", error);
 			const errorMessage =
@@ -209,33 +232,9 @@ const Schedule = () => {
 		}
 	};
 
-	const events = shifts?.map((shift) => {
-		return {
-			id: shift.id,
-			title: `${shift?.employee?.name} (${shift?.employee?.type})`,
-			start: new Date(`${shift.date}T${shift.startTime}`),
-			end: new Date(`${shift.date}T${shift.endTime}`),
-			resource: shift,
-		};
-	});
-
 	if (loading) {
 		return <Spinner />;
 	}
-
-	const mergedEmployees = employees?.map((emp) => {
-		const stats = weeklyEmployeeStats?.find((stat) => {
-			if (stat.employee.id === emp.id) {
-				return stat.empHours;
-			}
-			return 0;
-		});
-
-		return {
-			...emp,
-			currentHours: stats?.empHours ?? 0,
-		};
-	});
 
 	return (
 		<div className="container mx-auto px-4 py-6">
@@ -271,7 +270,7 @@ const Schedule = () => {
 							events={events}
 							startAccessor="start"
 							endAccessor="end"
-							style={{ height: 600 }}
+							style={{ height: 600, width: " 100%" }}
 							defaultView="week"
 							date={currentDate}
 							onNavigate={(date) => setCurrentDate(date)}
@@ -367,7 +366,7 @@ const Schedule = () => {
 							{weeklyEmployeeStats?.map((stat) => (
 								<div key={stat.id} className="border-b pb-3 last:border-b-0 last:pb-0">
 									<div className="flex justify-between items-center mb-1">
-										<span className="font-medium">{stat.employee.name}</span>
+										<span className="font-medium">{stat.employee?.name}</span>
 										<span className="text-sm text-gray-600">
 											{stat.empHours} / {stat.empMaxHours} hrs
 										</span>

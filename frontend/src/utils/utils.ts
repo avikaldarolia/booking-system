@@ -37,3 +37,21 @@ export const localeDate = (date: string) => {
 	const fDate = addMinutes(isoDate, isoDate.getTimezoneOffset());
 	return fDate;
 };
+
+export const debounce = <T extends (...args: unknown[]) => void>(
+	callback: T,
+	time: number
+): ((...args: Parameters<T>) => void) => {
+	let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+	return (...args: Parameters<T>) => {
+		if (timeoutId !== null) {
+			clearTimeout(timeoutId);
+		}
+
+		timeoutId = setTimeout(() => {
+			callback(...args);
+			timeoutId = null;
+		}, time);
+	};
+};
