@@ -115,7 +115,7 @@ export const createShift = async (data: {
 		const employee: Employee = await queryRunner.manager.getRepository(Employee).findOne({ where: { id: employeeId } });
 		if (!employee) throw new Error(`Employee with id ${employeeId} not found`);
 
-		const existingShift: Shift = await queryRunner.manager.getRepository(Shift).find({
+		const existingShift: Shift = await queryRunner.manager.getRepository(Shift).findOne({
 			where: {
 				employee: { id: employeeId },
 				date: adjustedDate,
