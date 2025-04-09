@@ -7,28 +7,26 @@ import { Week } from "./Week";
 @Entity()
 @Unique(["employeeId", "weekId"])
 @Index(["employeeId", "weekId"])
-export class WeeklyStats extends BaseEntity {
+export class WeeklyEmployeeStats extends BaseEntity {
 	@PrimaryGeneratedColumn("uuid")
 	id: string;
 
 	@Column("uuid")
 	employeeId: string;
 
-	@ManyToOne(() => Employee, (employee) => employee.weeklystats)
+	@ManyToOne(() => Employee, (employee) => employee.weeklyEmployeeStats)
 	employee: Employee;
 
 	@Column("uuid")
 	weekId: string;
 
-	@ManyToOne(() => Week, (week) => week.weeklystats)
-	// week: Relation<Week>;
+	@ManyToOne(() => Week, (week) => week.weeklyEmployeeStats)
 	week: Week;
 
-	@RelationId((weeklyStats: WeeklyStats) => weeklyStats.store)
+	@RelationId((weeklyEmployeeStats: WeeklyEmployeeStats) => weeklyEmployeeStats.store)
 	storeId: string;
 
 	@ManyToOne(() => Store, (store) => store.weeklyBudget)
-	// store: Relation<Store>;
 	store: Store;
 
 	@Column("decimal")

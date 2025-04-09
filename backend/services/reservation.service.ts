@@ -290,6 +290,7 @@ const buildReservationQuery = (
 					})
 				);
 			}
+			query.orderBy("reservation.date", "DESC");
 		},
 	};
 

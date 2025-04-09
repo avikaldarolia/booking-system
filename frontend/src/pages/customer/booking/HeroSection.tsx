@@ -7,7 +7,7 @@ interface HeroSectionProps {
 const HeroSection: React.FC<HeroSectionProps> = ({ onBookNow }) => {
 	return (
 		<div
-			className="relative h-[600px] bg-cover bg-center"
+			className="relative h-[400px] md:h-[800px] bg-cover bg-center"
 			style={{
 				backgroundImage:
 					"url(https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=2000&q=80)",

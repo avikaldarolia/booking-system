@@ -8,7 +8,7 @@ import employeeRoutes from "./routes/employee.routes";
 import storeRoutes from "./routes/store.routes";
 import availabilityRoutes from "./routes/availability.routes";
 import shiftRoutes from "./routes/shift.routes";
-import weeklyStatsRoutes from "./routes/weeklyStats.routes";
+import weeklyStatsRoutes from "./routes/weekly-employee-stats.routes";
 import googleCalendarRoutes from "./routes/googleCalendar.routes";
 import authRoutes from "./routes/auth.routes";
 import reservationRoutes from "./routes/reservation.routes";

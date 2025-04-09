@@ -1,4 +1,4 @@
-import { WeeklyStats } from "./../entities/WeeklyStats";
+import { WeeklyEmployeeStats } from "./../entities/WeeklyEmployeeStats";
 import { AppDataSource } from "../data-source";
 import { Shift } from "../entities/Shift";
 import { Employee } from "../entities/Employee";
@@ -14,7 +14,7 @@ const shiftRepository = AppDataSource.getRepository(Shift);
 const employeeRepository = AppDataSource.getRepository(Employee);
 const storeRepository = AppDataSource.getRepository(Store);
 const availabilityRepository = AppDataSource.getRepository(Availability);
-const weeklyStatsRepository = AppDataSource.getRepository(WeeklyStats);
+const weeklyStatsRepository = AppDataSource.getRepository(WeeklyEmployeeStats);
 const weekRepository = AppDataSource.getRepository(Week);
 
 /**
@@ -115,6 +115,17 @@ export const createShift = async (data: {
 		const employee: Employee = await queryRunner.manager.getRepository(Employee).findOne({ where: { id: employeeId } });
 		if (!employee) throw new Error(`Employee with id ${employeeId} not found`);
 
+		const existingShift: Shift = await queryRunner.manager.getRepository(Shift).findOne({
+			where: {
+				employee: { id: employeeId },
+				date: adjustedDate,
+				store: { id: storeId },
+			},
+		});
+
+		if (existingShift) {
+			throw new Error("Employee is already scheduled for this day.");
+		}
 		// Check if employee is available
 		const availability = await queryRunner.manager.getRepository(Availability).findOne({
 			where: { employee: { id: employeeId }, date, isBlocked: true },
@@ -144,16 +155,18 @@ export const createShift = async (data: {
 		}
 
 		// Find or create weekStats for this week_id and emp_id and storeId.
-		let weeklyStats: WeeklyStats = await queryRunner.manager.getRepository(WeeklyStats).findOne({
-			where: {
-				employee: { id: employeeId },
-				week: { id: week.id },
-				store: { id: storeId },
-			},
-		});
+		let weeklyEmployeeStats: WeeklyEmployeeStats = await queryRunner.manager
+			.getRepository(WeeklyEmployeeStats)
+			.findOne({
+				where: {
+					employee: { id: employeeId },
+					week: { id: week.id },
+					store: { id: storeId },
+				},
+			});
 
-		if (!weeklyStats) {
-			weeklyStats = queryRunner.manager.getRepository(WeeklyStats).create({
+		if (!weeklyEmployeeStats) {
+			weeklyEmployeeStats = queryRunner.manager.getRepository(WeeklyEmployeeStats).create({
 				employee,
 				week,
 				store,
@@ -162,14 +175,14 @@ export const createShift = async (data: {
 				empTotalCost: 0,
 				empMaxHours: employee.maxHours,
 			});
-			await queryRunner.manager.getRepository(WeeklyStats).save(weeklyStats);
+			await queryRunner.manager.getRepository(WeeklyEmployeeStats).save(weeklyEmployeeStats);
 		}
 
 		const hours = utils.calculateShiftHours(startTime, endTime);
 		const cost = utils.calculateShiftCost(hours, employee.hourlyRate);
 
 		// If shift exceeds max hours
-		if (Number(weeklyStats.empHours) + Number(hours) > Number(employee.maxHours)) {
+		if (Number(weeklyEmployeeStats.empHours) + Number(hours) > Number(employee.maxHours)) {
 			throw new Error("This shift would exceed employee's maximum hours");
 		}
 
@@ -194,11 +207,11 @@ export const createShift = async (data: {
 		await queryRunner.manager.getRepository(Shift).save(newShift);
 
 		week.cost = Number(week.cost) + cost;
-		weeklyStats.empHours = Number(weeklyStats.empHours) + hours;
-		weeklyStats.empTotalCost = Number(weeklyStats.empTotalCost) + cost;
+		weeklyEmployeeStats.empHours = Number(weeklyEmployeeStats.empHours) + hours;
+		weeklyEmployeeStats.empTotalCost = Number(weeklyEmployeeStats.empTotalCost) + cost;
 
 		await queryRunner.manager.getRepository(Week).save(week);
-		await queryRunner.manager.getRepository(WeeklyStats).save(weeklyStats);
+		await queryRunner.manager.getRepository(WeeklyEmployeeStats).save(weeklyEmployeeStats);
 
 		return newShift;
 	});
@@ -221,7 +234,7 @@ export const deleteShift = async (id: string) => {
 
 		let week = shift.week;
 
-		let weeklyStats: WeeklyStats = utils.parseSafe(
+		let weeklyEmployeeStats: WeeklyEmployeeStats = utils.parseSafe(
 			await weeklyStatsRepository.findOne({
 				where: {
 					week: { id: shift.week?.id },
@@ -231,13 +244,13 @@ export const deleteShift = async (id: string) => {
 		);
 
 		// Remove emp hours and cost from weekly-emp-stats
-		weeklyStats.empHours = Number(weeklyStats.empHours) - Number(shift.hours);
-		weeklyStats.empTotalCost = Number(weeklyStats.empTotalCost) - Number(shift.cost);
+		weeklyEmployeeStats.empHours = Number(weeklyEmployeeStats.empHours) - Number(shift.hours);
+		weeklyEmployeeStats.empTotalCost = Number(weeklyEmployeeStats.empTotalCost) - Number(shift.cost);
 
 		// Remove emp cost from weekly-stats
 		week.cost = Number(week.cost) - Number(shift.cost);
 
-		await weeklyStatsRepository.save(weeklyStats);
+		await weeklyStatsRepository.save(weeklyEmployeeStats);
 		await weekRepository.save(week);
 
 		await shiftRepository.remove(shift);
@@ -340,17 +353,17 @@ export const updateShift = async (
 		const weekStart = startOfWeek(shiftDate);
 		const weekEnd = endOfWeek(shiftDate);
 
-		const weeklyStats = await weeklyStatsRepository.findOne({
+		const weeklyEmployeeStats = await weeklyStatsRepository.findOne({
 			where: {
 				store: { id: shift.store.id },
 				weekStartDate: Between(weekStart, weekEnd),
 			},
 		});
 
-		if (!weeklyStats) throw new Error("Weekly stats not found");
+		if (!weeklyEmployeeStats) throw new Error("Weekly stats not found");
 
 		const costDiff = cost - originalCost;
-		if (weeklyStats.totalCost + costDiff > weeklyStats.budgetAllocated) {
+		if (weeklyEmployeeStats.totalCost + costDiff > weeklyEmployeeStats.budgetAllocated) {
 			throw new Error("This shift would exceed the weekly budget");
 		}
 
@@ -391,10 +404,10 @@ export const updateShift = async (
 			await employeeRepository.save(employee);
 		}
 
-		weeklyStats.totalHours = weeklyStats.totalHours - originalHours + hours;
-		weeklyStats.totalCost = weeklyStats.totalCost - originalCost + cost;
-		weeklyStats.budgetRemaining = weeklyStats.budgetRemaining + originalCost - cost;
-		await weeklyStatsRepository.save(weeklyStats);
+		weeklyEmployeeStats.totalHours = weeklyEmployeeStats.totalHours - originalHours + hours;
+		weeklyEmployeeStats.totalCost = weeklyEmployeeStats.totalCost - originalCost + cost;
+		weeklyEmployeeStats.budgetRemaining = weeklyEmployeeStats.budgetRemaining + originalCost - cost;
+		await weeklyStatsRepository.save(weeklyEmployeeStats);
 
 		return updatedShift;
 	} catch (error) {

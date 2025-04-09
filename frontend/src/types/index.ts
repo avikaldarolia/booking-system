@@ -43,6 +43,7 @@ export interface Reservation {
 }
 
 export interface Service {
+	id: number;
 	name: string;
 	price: number;
 	duration: string;
@@ -86,4 +87,5 @@ export interface WeekStats {
 	cost: number;
 	budget: number;
 	hours: number;
+	revenue: number;
 }

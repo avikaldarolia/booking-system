@@ -9,21 +9,23 @@ interface ServicesListProps {
 
 const ServicesList: React.FC<ServicesListProps> = ({ services, onSelectService }) => {
 	return (
-		<div className="bg-gray-100 p-6 transition-all duration-300">
-			<h2 className="text-3xl font-bold text-center mb-12 text-gray-800">Our Services</h2>
-			<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-				{services.map((service, index) => (
+		<div className="py-12 px-6">
+			<h2 className="text-4xl font-bold text-center text-gray-900 mb-12">Our Services</h2>
+			<div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+				{services.map((service) => (
 					<div
-						key={index}
-						className="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-shadow duration-200 cursor-pointer border border-gray-100"
+						key={service.id}
+						className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-2xl transition-transform transform hover:-translate-y-1 cursor-pointer border border-gray-200 flex flex-col"
 						onClick={() => onSelectService(service)}>
-						<div className="flex items-center justify-between mb-4">
-							<h3 className="text-xl font-semibold text-gray-800">{service.name}</h3>
-							<Scissors className="h-6 w-6 text-blue-500" />
+						<div className="flex min-h-[60px]">
+							<h3 className="text-xl w-11/12 inline-block font-semibold text-gray-800">{service.name}</h3>
+							<Scissors className="h-6 w-6 text-blue-600" />
 						</div>
-						<p className="text-gray-600 text-base mb-4">{service.description}</p>
-						<div className="flex items-center justify-between text-sm">
-							<span className="text-blue-500 font-semibold">${service.price}</span>
+
+						<p className="text-gray-600 text-base flex-grow my-2 overflow-hidden">{service.description}</p>
+
+						<div className="mt-auto flex items-center h-fit justify-between text-sm font-medium border-t border-gray-200">
+							<span className="text-blue-600 text-lg font-bold">${service.price}</span>
 							<span className="text-gray-500">{service.duration}</span>
 						</div>
 					</div>

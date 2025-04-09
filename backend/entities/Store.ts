@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
 import { BaseEntity } from "../types/base-entity";
-import { WeeklyStats } from "./WeeklyStats";
+import { WeeklyEmployeeStats } from "./WeeklyEmployeeStats";
 import { Employee } from "./Employee";
 import { Week } from "./Week";
 import { Shift } from "./Shift";
@@ -31,8 +31,8 @@ export class Store extends BaseEntity {
 	@OneToMany(() => Week, (week) => week.store)
 	weeks: Week[];
 
-	@OneToMany(() => WeeklyStats, (weeklyStats) => weeklyStats.store)
-	weeklyStats: WeeklyStats[];
+	@OneToMany(() => WeeklyEmployeeStats, (weeklyEmployeeStats) => weeklyEmployeeStats.store)
+	weeklyEmployeeStats: WeeklyEmployeeStats[];
 
 	@Column("text", { nullable: true })
 	calendarId: string;
