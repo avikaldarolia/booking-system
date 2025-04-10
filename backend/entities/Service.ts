@@ -1,7 +1,8 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, RelationId } from "typeorm";
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, RelationId } from "typeorm";
 import { BaseEntity } from "../types/base-entity";
 import { Store } from "./Store";
 import { Shift } from "./Shift";
+import { Reservation } from "./Reservation";
 
 @Entity()
 export class Service extends BaseEntity {
@@ -25,4 +26,7 @@ export class Service extends BaseEntity {
 
 	@ManyToOne(() => Store)
 	store: Store;
+
+	@OneToMany(() => Reservation, (reservation) => reservation.service, {})
+	reservations: Reservation[];
 }

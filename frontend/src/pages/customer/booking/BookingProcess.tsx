@@ -73,20 +73,20 @@ const BookingProcess = ({ onBookingSuccess }: BookingProcessProps) => {
 	};
 
 	const handleBookAppointment = async (selectedSlot: string, notes: string, selectedDate: Date, customer: Customer) => {
-		if (!selectedEmployee || !selectedSlot || !selectedDate) return;
+		if (!selectedEmployee || !selectedSlot || !selectedDate || !selectedService) return;
 
 		try {
 			await axios.post("reservations", {
 				employeeId: selectedEmployee.id,
 				date: format(selectedDate, "yyyy-MM-dd"),
 				startTime: selectedSlot,
-				duration: selectedService?.duration.split(" ")[0],
 				email: customer.email,
 				phone: customer.phoneNumber,
 				name: customer.name || "",
-				price: selectedService?.price,
 				notes,
+				service: selectedService,
 			});
+
 			alert("Appointment booked successfully!");
 			setStep(1);
 			setSelectedEmployee(null);

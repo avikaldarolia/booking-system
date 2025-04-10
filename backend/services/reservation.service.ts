@@ -1,4 +1,4 @@
-import { Between, Brackets, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual, Raw } from "typeorm";
+import { Brackets, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual } from "typeorm";
 import { AppDataSource } from "../data-source";
 import { Shift } from "../entities/Shift";
 import { add, format, startOfDay } from "date-fns";
@@ -7,6 +7,9 @@ import { Reservation, ReservationStatus } from "../entities/Reservation";
 import { Customer } from "../entities/Customer";
 import { User } from "../types/types";
 import * as utils from "../utils/utils";
+import { Service } from "../entities/Service";
+import { Week } from "../entities/Week";
+import { WeeklyEmployeeStats } from "../entities/WeeklyEmployeeStats";
 
 const reservationRepository = AppDataSource.getRepository(Reservation);
 const shiftRepository = AppDataSource.getRepository(Shift);
@@ -27,10 +30,11 @@ export const CreateReservation = async (
 	phone: string,
 	date: string,
 	startTime: string,
-	duration: string,
+	service: Service,
+	storeId: string,
 	notes: string
 ) => {
-	try {
+	return utils.runInTransaction<Reservation>(async (queryRunner) => {
 		// Email and phone number regex check.
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Basic email validation
 		const phoneRegex = /^\d{3}-\d{3}-\d{4}$/; // Format: XXX-XXX-XXXX
@@ -44,24 +48,24 @@ export const CreateReservation = async (
 			throw new Error("Invalid phone number format (expected: XXX-XXX-XXXX)");
 		}
 
-		const employee = await employeeRepository.findOne({ where: { id: employeeId } });
+		const employee: Employee = await queryRunner.manager.getRepository(Employee).findOne({ where: { id: employeeId } });
 		if (!employee) {
 			throw new Error("Employee not found");
 		}
 
-		let customer = await customerRepository.findOne({ where: { email, phone } });
+		let customer: Customer = await queryRunner.manager.getRepository(Customer).findOne({ where: { email, phone } });
 
 		let adjustedDate = utils.localeDate(date);
 		const adjustDateString = format(adjustedDate, "yyyy-MM-dd");
 
-		const durationMinutes = parseInt(duration ?? DEFAULT_DURATION, 10);
+		const durationMinutes = service.duration ?? DEFAULT_DURATION;
 		const endDateTime = add(new Date(`${adjustDateString}T${startTime}:00`), { minutes: durationMinutes });
 		console.log("Calculated end time: ");
 
 		const endTime = format(endDateTime, "HH:mm");
 
 		if (!customer) {
-			customer = customerRepository.create({
+			customer = queryRunner.manager.getRepository(Customer).create({
 				email,
 				phone,
 				name: name || "",
@@ -70,7 +74,7 @@ export const CreateReservation = async (
 			await customerRepository.save(customer);
 		}
 
-		const existingReservations = await reservationRepository.find({
+		const existingReservations: Reservation[] = await queryRunner.manager.getRepository(Reservation).find({
 			where: {
 				employee: { id: employeeId },
 				date: adjustedDate,
@@ -82,7 +86,36 @@ export const CreateReservation = async (
 		if (existingReservations.length > 0) {
 			throw new Error("Employee is already booked for this time slot");
 		}
-		const reservation = reservationRepository.create({
+
+		let week: Week = await queryRunner.manager.getRepository(Week).findOne({
+			where: {
+				startDate: LessThanOrEqual(adjustedDate),
+				endDate: MoreThanOrEqual(adjustedDate),
+				store: { id: storeId },
+			},
+		});
+
+		if (!week) {
+			throw new Error("Unable to fetch the week.");
+		}
+
+		week.revenue = Number(week.revenue) + service.price;
+
+		let employeeStats: WeeklyEmployeeStats = await queryRunner.manager.getRepository(WeeklyEmployeeStats).findOne({
+			where: {
+				employee: { id: employeeId },
+				week: { id: week.id },
+				store: { id: storeId },
+			},
+		});
+
+		if (!employeeStats) {
+			throw new Error("Error in employee stats.");
+		}
+
+		employeeStats.revenue = Number(employeeStats.revenue) + service.price;
+
+		const reservation = queryRunner.manager.getRepository(Reservation).create({
 			employee,
 			customer,
 			date: adjustedDate,
@@ -90,15 +123,19 @@ export const CreateReservation = async (
 			endTime,
 			duration: durationMinutes,
 			notes: notes,
+			cost: service.price,
 			status: ReservationStatus.CONFIRMED,
+			service,
+			week,
+			store: { id: storeId },
 		});
 
-		await reservationRepository.save(reservation);
+		await queryRunner.manager.getRepository(Reservation).save(reservation);
+		await queryRunner.manager.getRepository(Week).save(week);
+		await queryRunner.manager.getRepository(WeeklyEmployeeStats).save(employeeStats);
 
-		return utils.serviceResponse(true, reservation, "");
-	} catch (error) {
-		throw error;
-	}
+		return reservation;
+	});
 };
 
 export const GetAvailableDates = async (employeeId: string, storeId: string) => {

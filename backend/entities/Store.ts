@@ -37,7 +37,7 @@ export class Store extends BaseEntity {
 	services: Service[];
 
 	@OneToMany(() => Reservation, (reservation) => reservation.store)
-	reservations: Week[];
+	reservations: Reservation[];
 
 	@OneToMany(() => WeeklyEmployeeStats, (weeklyEmployeeStats) => weeklyEmployeeStats.store)
 	weeklyEmployeeStats: WeeklyEmployeeStats[];
