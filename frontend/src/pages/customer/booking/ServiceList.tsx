@@ -12,7 +12,7 @@ const ServicesList: React.FC<ServicesListProps> = ({ services, onSelectService }
 		<div className="py-12 px-6">
 			<h2 className="text-4xl font-bold text-center text-gray-900 mb-12">Our Services</h2>
 			<div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-				{services.map((service) => (
+				{services?.map((service) => (
 					<div
 						key={service.id}
 						className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-2xl transition-transform transform hover:-translate-y-1 cursor-pointer border border-gray-200 flex flex-col"

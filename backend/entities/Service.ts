@@ -12,7 +12,7 @@ export class Service extends BaseEntity {
 	name: string;
 
 	@Column("int")
-	cost: number;
+	price: number;
 
 	@Column("int")
 	duration: number;

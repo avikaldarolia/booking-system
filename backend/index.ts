@@ -14,6 +14,7 @@ import authRoutes from "./routes/auth.routes";
 import reservationRoutes from "./routes/reservation.routes";
 import weekRoutes from "./routes/week.routes";
 import voiceAgentRoutes from "./routes/voice-agent.routes";
+import serviceRoutes from "./routes/service.routes";
 
 import { errorHandler } from "./utils/utils";
 import { requireStoreId } from "./middleware/auth.middleware";
@@ -39,6 +40,7 @@ app.use("/api/stores/:storeId/weekly-stats", requireStoreId, weeklyStatsRoutes);
 app.use("/api/stores/:storeId/google-calendar", requireStoreId, googleCalendarRoutes);
 app.use("/api/stores/:storeId/reservations", requireStoreId, reservationRoutes);
 app.use("/api/stores/:storeId/week", requireStoreId, weekRoutes);
+app.use("/api/stores/:storeId/services", requireStoreId, serviceRoutes);
 
 app.use(errorHandler);
 

@@ -52,6 +52,9 @@ export class Reservation extends BaseEntity {
 	@Column("int")
 	duration: number;
 
+	@Column("int", { nullable: true })
+	cost: number;
+
 	@Column({
 		type: "enum",
 		enum: ReservationStatus,
