@@ -13,6 +13,6 @@
 		"experimentalDecorators": true,
 		"emitDecoratorMetadata": true
 	},
-	"include": ["*.ts", "./**/*.ts", "./lib/types/express.d.ts"],
+	"include": ["*.ts", "./**/*.ts", "./lib/types/express.d.ts", "seeds/services.seed.ts"],
 	"exclude": ["node_modules"]
 }

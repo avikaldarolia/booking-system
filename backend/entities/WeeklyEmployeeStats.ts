@@ -40,4 +40,7 @@ export class WeeklyEmployeeStats extends BaseEntity {
 
 	@Column("decimal", { default: 0 })
 	empTotalCost: number;
+
+	@Column("decimal", { default: 0 })
+	revenue: number;
 }

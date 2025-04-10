@@ -12,10 +12,9 @@ import { authenticate, authorize, requireStoreId } from "../middleware/auth.midd
 
 const router = Router();
 
-router.post("/", requireStoreId, createReservation);
-
-router.get("/dates", requireStoreId, getAvailableDates);
-router.get("/slots", requireStoreId, getAvailableSlots);
+router.post("/", createReservation);
+router.get("/dates", getAvailableDates);
+router.get("/slots", getAvailableSlots);
 
 // // Protected routes
 router.use(authenticate);

@@ -8,7 +8,7 @@ import * as utils from "../utils/utils";
 export const getTotalRevenue = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { storeId } = req.params;
-		const totalRevenue = await AnalyticsService.GetTotalRevenue(storeId);
+		const totalRevenue = await AnalyticsService.GetTotalRevenue(storeId!);
 		return utils.sendResponse(req, res, totalRevenue.success, totalRevenue.data, totalRevenue.err);
 	} catch (error) {
 		next(error);
@@ -54,7 +54,7 @@ export const getRevenuePerWeek = utils.asyncMiddleware(async (req: Request, res:
 	try {
 		const { storeId } = req.params;
 		const { startDate, endDate } = req.query;
-		const weeklyRevenue = await AnalyticsService.GetRevenuePerWeek(storeId, startDate as string, endDate as string);
+		const weeklyRevenue = await AnalyticsService.GetRevenuePerWeek(storeId!, startDate as string, endDate as string);
 		return utils.sendResponse(req, res, weeklyRevenue.success, weeklyRevenue.data, weeklyRevenue.err);
 	} catch (error) {
 		next(error);

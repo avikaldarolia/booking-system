@@ -20,6 +20,7 @@ import Schedule from "./pages/manager/Schedule";
 import WeeklyStats from "./pages/manager/WeeklyStats";
 import Reservations from "./pages/manager/Reservations";
 import Settings from "./pages/manager/Settings";
+import Analytics from "./pages/manager/Analytics";
 
 // Employee Pages
 import EmployeePortal from "./pages/employee-portal/EmployeePortal";
@@ -83,6 +84,7 @@ function AppRoutes() {
 								<Route path="weekly-stats" element={<WeeklyStats />} />
 								<Route path="reservations" element={<Reservations />} />
 								<Route path="settings" element={<Settings />} />
+								<Route path="analytics" element={<Analytics />} />
 								<Route path="*" element={<Navigate to="/manager-portal/" replace />} />
 							</Routes>
 						</DashboardLayout>

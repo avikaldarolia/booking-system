@@ -19,7 +19,7 @@ import {
 	getWeeklyTrends,
 	getReservationStatusBreakdown,
 	getShiftOverlaps,
-} from "../controllers/store-analytics.controller";
+} from "../controllers/analytics.controller";
 import { requireStoreId } from "../middleware/auth.middleware";
 
 const router = Router({ mergeParams: true });
