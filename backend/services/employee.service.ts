@@ -14,14 +14,9 @@ const DEFAULT_BASE_HOURS = 20;
  * @param storeId
  * @returns
  */
-export const GetAllEmployees = async (storeId?: string) => {
+export const GetAllEmployees = async (storeId: string) => {
 	try {
 		let query = employeeRepository.createQueryBuilder("employee").leftJoinAndSelect("employee.store", "store");
-
-		if (!storeId) {
-			throw new Error("Store Id is required.");
-		}
-
 		query = query.where("store.id = :storeId", { storeId });
 
 		const employees = utils.parseSafe(await query.getMany());
@@ -37,12 +32,8 @@ export const GetAllEmployees = async (storeId?: string) => {
  * @param id
  * @returns
  */
-export const GetEmployeeById = async (id: string, storeId?: string) => {
+export const GetEmployeeById = async (id: string, storeId: string) => {
 	try {
-		if (!storeId) {
-			throw new Error("Store Id is required.");
-		}
-
 		const employee = utils.parseSafe(await employeeRepository.findOne({ where: { id }, relations: ["store"] }));
 
 		if (!employee) {
@@ -60,19 +51,21 @@ export const GetEmployeeById = async (id: string, storeId?: string) => {
  * @param data
  * @returns
  */
-export const CreateEmployee = async (data: {
-	name: string;
-	email: string;
-	type: EmployeeType;
-	maxHours: number;
-	hourlyRate: number;
-	storeId: string;
-	password: string;
-	bio?: string;
-	imageUrl?: string;
-}) => {
+export const CreateEmployee = async (
+	storeId: string,
+	data: {
+		name: string;
+		email: string;
+		type: EmployeeType;
+		maxHours: number;
+		hourlyRate: number;
+		password: string;
+		bio?: string;
+		imageUrl?: string;
+	}
+) => {
 	try {
-		const store = await storeRepository.findOne({ where: { id: data.storeId } });
+		const store = await storeRepository.findOne({ where: { id: storeId } });
 
 		if (!store) {
 			throw new Error("Store not found.");
@@ -146,23 +139,5 @@ export const DeleteEmployee = async (id: string) => {
 	} catch (error) {
 		console.error(`Error deleting employee with id: ${id}`, error);
 		throw new Error("Failed to delete employee.");
-	}
-};
-
-export const ResetEmployeeHours = async (storeId: string) => {
-	try {
-		const employees = await employeeRepository.find({ where: { store: { id: storeId } } });
-
-		if (employees.length === 0) {
-			throw new Error("No employees found for this store.");
-		}
-
-		// employees.forEach((emp) => (emp.currentHours = 0));
-		await employeeRepository.save(employees);
-
-		return { message: "Employee hours reset successfully." };
-	} catch (error) {
-		console.error(`Error resetting employee hours for storeId: ${storeId}`, error);
-		throw new Error("Failed to reset employee hours.");
 	}
 };

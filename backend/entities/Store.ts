@@ -4,6 +4,7 @@ import { WeeklyEmployeeStats } from "./WeeklyEmployeeStats";
 import { Employee } from "./Employee";
 import { Week } from "./Week";
 import { Shift } from "./Shift";
+import { Reservation } from "./Reservation";
 
 @Entity()
 export class Store extends BaseEntity {
@@ -30,6 +31,9 @@ export class Store extends BaseEntity {
 
 	@OneToMany(() => Week, (week) => week.store)
 	weeks: Week[];
+
+	@OneToMany(() => Reservation, (reservation) => reservation.store)
+	reservations: Week[];
 
 	@OneToMany(() => WeeklyEmployeeStats, (weeklyEmployeeStats) => weeklyEmployeeStats.store)
 	weeklyEmployeeStats: WeeklyEmployeeStats[];

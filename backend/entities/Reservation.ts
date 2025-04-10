@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, RelationId } from "t
 import { Employee } from "./Employee";
 import { Customer } from "./Customer";
 import { BaseEntity } from "../types/base-entity";
+import { Store } from "./Store";
 
 export enum ReservationStatus {
 	PENDING = "pending",
@@ -26,6 +27,12 @@ export class Reservation extends BaseEntity {
 
 	@ManyToOne(() => Employee, (employee) => employee.reservations, { onDelete: "CASCADE" })
 	employee: Employee;
+
+	@RelationId((reservation: Reservation) => reservation.store)
+	storeId: string;
+
+	@ManyToOne(() => Store, (store) => store.reservations, { onDelete: "CASCADE" })
+	store: Store;
 
 	@RelationId((reservation: Reservation) => reservation.customer)
 	customerId: string;

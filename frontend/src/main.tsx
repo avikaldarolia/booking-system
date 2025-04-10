@@ -4,7 +4,10 @@ import "./index.css";
 import App from "./App.tsx";
 import axios from "axios";
 
-axios.defaults.baseURL = import.meta.env.VITE_BACKEND_BASE_URL;
+const baseUrl = import.meta.env.VITE_BACKEND_BASE_URL;
+const storeId = import.meta.env.VITE_STORE_ID;
+
+axios.defaults.baseURL = `${baseUrl}/${storeId}/`;
 
 createRoot(document.getElementById("root")!).render(
 	<StrictMode>

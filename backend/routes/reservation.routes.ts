@@ -8,14 +8,14 @@ import {
 	getAvailableSlots,
 	getAvailableDates,
 } from "../controllers/reservation.controller";
-import { authenticate, authorize } from "../middleware/auth.middleware";
+import { authenticate, authorize, requireStoreId } from "../middleware/auth.middleware";
 
 const router = Router();
 
-router.post("/", createReservation);
+router.post("/", requireStoreId, createReservation);
 
-router.get("/dates", getAvailableDates);
-router.get("/slots", getAvailableSlots);
+router.get("/dates", requireStoreId, getAvailableDates);
+router.get("/slots", requireStoreId, getAvailableSlots);
 
 // // Protected routes
 router.use(authenticate);

@@ -101,7 +101,7 @@ export const CreateReservation = async (
 	}
 };
 
-export const GetAvailableDates = async (employeeId: string, storeId?: string) => {
+export const GetAvailableDates = async (employeeId: string, storeId: string) => {
 	try {
 		if (!employeeId) {
 			throw new Error("Employee Id is required.");
@@ -123,6 +123,7 @@ export const GetAvailableDates = async (employeeId: string, storeId?: string) =>
 			query = query.andWhere("employee.id = :employeeId", { employeeId });
 		}
 
+		query.andWhere("employee.storeId = :storeId", { storeId });
 		query.andWhere("shift.date >= :today", { today });
 
 		const result = utils.parseSafe(await query.getMany());
@@ -132,7 +133,7 @@ export const GetAvailableDates = async (employeeId: string, storeId?: string) =>
 	}
 };
 
-export const GetAvailableSlotsOnDate = async (employeeId: string, date: string, duration?: string) => {
+export const GetAvailableSlotsOnDate = async (employeeId: string, date: string, storeId: string, duration?: string) => {
 	try {
 		if (!date) {
 			throw new Error("Date is required.");
@@ -141,18 +142,17 @@ export const GetAvailableSlotsOnDate = async (employeeId: string, date: string, 
 		const parsedDate = utils.localeDate(date);
 		const targetDateString = format(parsedDate, "yyyy-MM-dd");
 
-		const employee = await employeeRepository
-			.createQueryBuilder("employee")
-			.leftJoinAndSelect("employee.shifts", "shift")
-			.where("employee.id = :employeeId", { employeeId })
-			.andWhere("DATE(shift.date) = :date", { date: targetDateString })
-			.getOne();
+		const employee = utils.parseSafe(
+			await employeeRepository
+				.createQueryBuilder("employee")
+				.leftJoinAndSelect("employee.shifts", "shift")
+				.where("employee.id = :employeeId", { employeeId })
+				.andWhere("employee.storeId = :storeId", { storeId })
+				.andWhere("DATE(shift.date) = :date", { date: targetDateString })
+				.getOne()
+		);
 
-		if (!employee) {
-			throw new Error("Employee not found");
-		}
-
-		if (!employee.shifts.length || !employee.shifts[0]) {
+		if (!employee || !employee.shifts?.length || !employee.shifts[0]) {
 			throw new Error("No shift found.");
 		}
 

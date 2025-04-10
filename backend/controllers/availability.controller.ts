@@ -35,7 +35,6 @@ export const createAvailability = utils.asyncMiddleware(async (req: Request, res
 		);
 		return utils.sendResponse(req, res, newAvailability.success, newAvailability.data, newAvailability.err);
 	} catch (error) {
-		console.error("Error creating availability:", error);
 		next(error);
 	}
 });

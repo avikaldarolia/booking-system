@@ -44,3 +44,22 @@ export const authorize = (roles: string[]) =>
 			return res.status(500).json({ message: "Authorization error" });
 		}
 	});
+
+export const requireStoreId = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const { storeId } = req.params;
+		if (!storeId || storeId === ":storeId") {
+			return res.status(400).json({ error: "storeId is required" });
+		}
+		if (typeof storeId !== "string" || storeId.trim() === "") {
+			return res.status(400).json({ error: "storeId must be a non-empty string" });
+		}
+		if (storeId) {
+			req.storeId = storeId;
+		}
+
+		next();
+	} catch (error) {
+		return res.status(500).json({ error: "storeId is required" });
+	}
+});
