@@ -58,6 +58,8 @@ export const CreateReservation = async (
 		let adjustedDate = utils.localeDate(date);
 		const adjustDateString = format(adjustedDate, "yyyy-MM-dd");
 
+		console.log("date:", adjustDateString);
+
 		const durationMinutes = service.duration ?? DEFAULT_DURATION;
 		const endDateTime = add(new Date(`${adjustDateString}T${startTime}:00`), { minutes: durationMinutes });
 		console.log("Calculated end time: ");
@@ -170,7 +172,7 @@ export const GetAvailableDates = async (employeeId: string, storeId: string) => 
 	}
 };
 
-export const GetAvailableSlotsOnDate = async (employeeId: string, date: string, storeId: string, duration?: string) => {
+export const GetAvailableSlotsOnDate = async (employeeId: string, date: string, storeId: string, duration: number) => {
 	try {
 		if (!date) {
 			throw new Error("Date is required.");
@@ -225,22 +227,23 @@ export const GetAvailableSlotsOnDate = async (employeeId: string, date: string, 
 			const slotEnd = new Date(currentSlot);
 			slotEnd.setMinutes(slotEnd.getMinutes() + slotDuration);
 
+			if (slotEnd > endTime) break;
+
 			// Check if this slots, end time with the duration of service requested overlaps some reservation or not.
 			const slotEndWithService = new Date(currentSlot);
 			if (duration) {
 				slotEndWithService.setMinutes(slotEndWithService.getMinutes() + Number(duration));
 			}
 
-			if (slotEnd > endTime) break;
-
 			const isAvailable = !existingReservations.some((reservation: Reservation) => {
 				const reservationStart = new Date(`${reservation.date}T${reservation.startTime}`);
 				const reservationEnd = new Date(`${reservation.date}T${reservation.endTime}`);
-				return (
-					(currentSlot > reservationStart && currentSlot < reservationEnd) ||
-					(slotEnd > reservationStart && slotEnd < reservationEnd) ||
-					(duration && slotEndWithService > reservationStart && slotEndWithService < reservationEnd)
-				);
+				// return (
+				// 	(currentSlot > reservationStart && currentSlot < reservationEnd) ||
+				// 	(slotEnd > reservationStart && slotEnd < reservationEnd) ||
+				// 	(duration && slotEndWithService > reservationStart && slotEndWithService < reservationEnd)
+				// );
+				return currentSlot <= reservationEnd && reservationStart <= slotEndWithService;
 			});
 
 			slots.push({

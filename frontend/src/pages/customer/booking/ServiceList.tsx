@@ -26,7 +26,7 @@ const ServicesList: React.FC<ServicesListProps> = ({ services, onSelectService }
 
 						<div className="mt-auto flex items-center h-fit justify-between text-sm font-medium border-t border-gray-200">
 							<span className="text-blue-600 text-lg font-bold">${service.price}</span>
-							<span className="text-gray-500">{service.duration}</span>
+							<span className="text-gray-500">{service.duration} mins</span>
 						</div>
 					</div>
 				))}
