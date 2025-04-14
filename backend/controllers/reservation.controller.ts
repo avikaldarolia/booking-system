@@ -2,25 +2,19 @@ import * as utils from "../utils/utils";
 import { NextFunction, Request, Response } from "express";
 import { AppDataSource } from "../data-source";
 import { Reservation, ReservationStatus } from "../entities/Reservation";
-import { Employee } from "../entities/Employee";
-import { Customer } from "../entities/Customer";
-import { Between, LessThanOrEqual, MoreThanOrEqual } from "typeorm";
-import { startOfDay, endOfDay, parseISO, format } from "date-fns";
 import * as ReservationService from "../services/reservation.service";
 
 const reservationRepository = AppDataSource.getRepository(Reservation);
-const employeeRepository = AppDataSource.getRepository(Employee);
-const customerRepository = AppDataSource.getRepository(Customer);
 
-export const getAvailableDates = utils.asyncMiddleware(async (req: Request, res: Response) => {
+export const getAvailableDates = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const { employeeId, storeId } = req.query;
-		const dates = await ReservationService.GetAvailableDates(employeeId as string, storeId as string);
+		const { employeeId } = req.query;
+		const storeId = req.storeId!;
+		const dates = await ReservationService.GetAvailableDates(employeeId as string, storeId);
 
-		return res.status(200).json(dates);
-	} catch (error: any) {
-		console.error("Controller error fetching shifts:", error);
-		return res.status(500).json({ message: error.message || "Internal server error" });
+		return utils.sendResponse(req, res, dates.success, dates.data, dates.err);
+	} catch (error) {
+		next(error);
 	}
 });
 
@@ -45,7 +39,9 @@ export const getReservationById = async (req: Request, res: Response) => {
 
 export const createReservation = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const { employeeId, name, email, phone, date, startTime, duration, notes } = req.body;
+		const { employeeId, name, email, phone, date, startTime, notes, service } = req.body;
+
+		const storeId = req.storeId!;
 
 		const reservation = await ReservationService.CreateReservation(
 			employeeId,
@@ -54,7 +50,8 @@ export const createReservation = utils.asyncMiddleware(async (req: Request, res:
 			phone,
 			date,
 			startTime,
-			duration,
+			service,
+			storeId,
 			notes
 		);
 
@@ -131,10 +128,20 @@ export const cancelReservation = async (req: Request, res: Response) => {
 		return res.status(500).json({ message: "Internal server error" });
 	}
 };
+
+/**
+ * Get Available slots for an employee on a selected date.
+ */
 export const getAvailableSlots = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const { employeeId, date } = req.query;
-		const slots = await ReservationService.GetAvailableSlotsOnDate(employeeId as string, date as string);
+		const { employeeId, date, duration } = req.query;
+		const storeId = req.storeId!;
+		const slots = await ReservationService.GetAvailableSlotsOnDate(
+			employeeId as string,
+			date as string,
+			storeId,
+			duration as string
+		);
 		return utils.sendResponse(req, res, slots.success, slots.data, slots.err);
 	} catch (error) {
 		next(error);

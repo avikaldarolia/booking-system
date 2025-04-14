@@ -1,6 +1,6 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import * as StoreService from "../services/store.service";
-import * as utils from "../utils/utils"; // Assuming asyncMiddleware exists in utils
+import * as utils from "../utils/utils";
 
 export const getAllStores = utils.asyncMiddleware(async (req: Request, res: Response) => {
 	try {

@@ -8,12 +8,11 @@ import {
 	getAvailableSlots,
 	getAvailableDates,
 } from "../controllers/reservation.controller";
-import { authenticate, authorize } from "../middleware/auth.middleware";
+import { authenticate, authorize, requireStoreId } from "../middleware/auth.middleware";
 
 const router = Router();
 
 router.post("/", createReservation);
-
 router.get("/dates", getAvailableDates);
 router.get("/slots", getAvailableSlots);
 

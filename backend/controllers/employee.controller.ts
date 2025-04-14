@@ -4,7 +4,8 @@ import * as utils from "../utils/utils";
 
 export const getAllEmployees = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const employees = await EmployeeService.GetAllEmployees(req.query.storeId as string);
+		const storeId = req.storeId;
+		const employees = await EmployeeService.GetAllEmployees(storeId!);
 		return utils.sendResponse(req, res, employees.success, employees.data, employees.err);
 	} catch (error) {
 		next(error);
@@ -13,7 +14,8 @@ export const getAllEmployees = utils.asyncMiddleware(async (req: Request, res: R
 
 export const getEmployeeById = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const employee = await EmployeeService.GetEmployeeById(req.params.id, req.query.storeId as string);
+		const storeId = req.storeId;
+		const employee = await EmployeeService.GetEmployeeById(req.params.id, storeId!);
 		return utils.sendResponse(req, res, employee.success, employee.data, employee.err);
 	} catch (error) {
 		next(error);
@@ -22,7 +24,8 @@ export const getEmployeeById = utils.asyncMiddleware(async (req: Request, res: R
 
 export const createEmployee = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const newEmployee = await EmployeeService.CreateEmployee(req.body);
+		const storeId = req.storeId!;
+		const newEmployee = await EmployeeService.CreateEmployee(storeId, req.body);
 		return utils.sendResponse(req, res, newEmployee.success, newEmployee.data, newEmployee.err);
 	} catch (error) {
 		next(error);
@@ -45,16 +48,6 @@ export const deleteEmployee = utils.asyncMiddleware(async (req: Request, res: Re
 		return res.status(200).json({ message: "Employee deleted successfully" });
 	} catch (error) {
 		console.error("Error in deleteEmployee:", error);
-		return res.status(500).json({ message: error instanceof Error ? error.message : "Internal server error" });
-	}
-});
-
-export const resetEmployeeHours = utils.asyncMiddleware(async (req: Request, res: Response) => {
-	try {
-		await EmployeeService.ResetEmployeeHours(req.params.storeId);
-		return res.status(200).json({ message: "Employee hours reset successfully" });
-	} catch (error) {
-		console.error("Error in resetEmployeeHours:", error);
 		return res.status(500).json({ message: error instanceof Error ? error.message : "Internal server error" });
 	}
 });

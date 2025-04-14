@@ -2,11 +2,12 @@
 	"name": "booking-system",
 	"version": "1.0.0",
 	"description": "Backend for Booking system",
-	"main": "index.js",
+	"main": "index.ts",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"start": "node dist/index.js",
-		"dev": "nodemon --exec tsx index.ts"
+		"dev": "nodemon --exec tsx index.ts",
+		"seed:services": "npx tsx seeds/services.seed.ts"
 	},
 	"author": "",
 	"license": "ISC",
@@ -24,14 +25,14 @@
 		"nodemon": "^3.1.9",
 		"pg": "^8.13.3",
 		"reflect-metadata": "^0.2.2",
-		"ts-node": "^10.9.2",
-		"tsx": "^4.19.3",
-		"typeorm": "^0.3.20",
-		"typescript": "^5.8.2"
+		"typeorm": "^0.3.20"
 	},
 	"devDependencies": {
 		"@types/cors": "^2.8.17",
 		"@types/express": "^5.0.0",
-		"@types/node": "^22.13.8"
+		"@types/node": "^22.13.8",
+		"ts-node": "^10.9.2",
+		"tsx": "^4.19.3",
+		"typescript": "^5.8.3"
 	}
 }

@@ -3,6 +3,7 @@ import { BaseEntity } from "../types/base-entity";
 import { Store } from "./Store";
 import { WeeklyEmployeeStats } from "./WeeklyEmployeeStats";
 import { Shift } from "./Shift";
+import { Reservation } from "./Reservation";
 
 @Entity()
 @Index(["startDate", "endDate"])
@@ -27,6 +28,9 @@ export class Week extends BaseEntity {
 		cascade: ["soft-remove"],
 	})
 	shifts: Shift[];
+
+	@OneToMany(() => Reservation, (reservation) => reservation.week, {})
+	reservations: Reservation[];
 
 	@Column("date")
 	startDate: Date;
