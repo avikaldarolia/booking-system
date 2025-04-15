@@ -11,12 +11,23 @@ const reservationRepository = AppDataSource.getRepository(Reservation);
 const shiftRepository = AppDataSource.getRepository(Shift);
 const statsRepository = AppDataSource.getRepository(WeeklyEmployeeStats);
 
-export const GetTotalRevenue = async (storeId: string) => {
+/**
+ * @param storeId
+ * @returns total revenue
+ */
+export const GetTotalRevenue = async (storeId: string, startDate?: string, endDate?: string) => {
 	try {
-		let query = weekRepository
-			.createQueryBuilder("week")
-			.where("week.storeId = :storeId", { storeId })
-			.select("SUM(week.revenue)", "totalRevenue");
+		console.log(startDate, endDate);
+
+		if (startDate && !endDate) {
+			endDate = utils.localeDate(new Date().toISOString()).toISOString();
+		}
+
+		let query = weekRepository.createQueryBuilder("week").where("week.storeId = :storeId", { storeId });
+		if (startDate && endDate) {
+			query.andWhere("week.startDate BETWEEN :startDate AND :endDate", { startDate, endDate });
+		}
+		query.select("SUM(week.revenue)", "totalRevenue");
 
 		const revenue = utils.parseSafe(await query.getRawOne());
 
@@ -27,8 +38,17 @@ export const GetTotalRevenue = async (storeId: string) => {
 	}
 };
 
-export const GetRevenuePerEmployee = async (storeId: string, startDate: string, endDate: string) => {
+/**
+ * @param storeId
+ * @param startDate optional
+ * @param endDate optional
+ * @returns Revenue Per Employee between start and end date (default: as of now).
+ */
+export const GetRevenuePerEmployee = async (storeId: string, startDate?: string, endDate?: string) => {
 	try {
+		if (startDate && !endDate) {
+			endDate = utils.localeDate(new Date().toISOString()).toISOString();
+		}
 		const query = reservationRepository
 			.createQueryBuilder("reservation")
 			.innerJoin("reservation.employee", "employee")
@@ -38,14 +58,11 @@ export const GetRevenuePerEmployee = async (storeId: string, startDate: string, 
 		}
 		query
 			.groupBy("reservation.employeeId, employee.id, employee.name, employee.hourlyRate")
-			.select([
-				"employee.id as employeeId",
-				"employee.name as name",
-				"SUM(reservation.duration * employee.hourlyRate / 60) as revenue",
-			]);
+			.select(["employee.id as employeeId", "employee.name as name", "SUM(reservation.cost) as revenue"]);
 
 		const data = utils.parseSafe(await query.getRawMany());
-		const result = data.map((row) => ({
+
+		const result = data.map((row: any) => ({
 			employeeId: row.employeeId,
 			name: row.name,
 			revenue: Number(row.revenue) || 0,
@@ -58,19 +75,17 @@ export const GetRevenuePerEmployee = async (storeId: string, startDate: string, 
 
 export const GetRevenuePerShift = async (storeId: string, startDate: string, endDate: string) => {
 	try {
-		if (startDate != null) {
-			endDate = endDate ? endDate : new Date().toISOString();
+		if (startDate && !endDate) {
+			endDate = utils.localeDate(new Date().toISOString()).toISOString();
 		}
 		const query = weekRepository
 			.createQueryBuilder("week")
 			.leftJoin("week.shifts", "shift")
 			.where("week.storeId = :storeId", { storeId });
-		if (startDate && endDate) {
-			query.andWhere("week.startDate BETWEEN :startDate AND :endDate", { startDate, endDate });
-		}
 		query
-			.groupBy("week.id, week.startDate")
-			.select(["week.startDate as weekStart", "week.revenue / COUNT(shift.id) as avgRevenue"]);
+			.andWhere("week.startDate BETWEEN :startDate AND :endDate", { startDate, endDate })
+			.groupBy("week.id, week.startDate");
+		query.select(["week.startDate as weekStart", "week.revenue / COUNT(shift.id) as avgRevenue"]);
 
 		const data = utils.parseSafe(await query.getRawMany());
 		const result = data.map((row) => ({
@@ -85,30 +100,30 @@ export const GetRevenuePerShift = async (storeId: string, startDate: string, end
 
 export const GetRevenuePerWeek = async (storeId: string, startDateLocal: string, endDateLocal: string) => {
 	try {
+		if (startDateLocal && !endDateLocal) {
+			endDateLocal = utils.localeDate(new Date().toISOString()).toISOString();
+		}
 		const startDate = utils.localeDate(startDateLocal);
 		const endDate = utils.localeDate(endDateLocal);
-		const data = await weekRepository.find({
-			where: { storeId, startDate: Between(startDate, endDate) },
-			select: ["startDate", "revenue"],
-			order: { startDate: "ASC" },
-		});
-		const result = data.map((w) => ({ weekStart: w.startDate, revenue: w.revenue || 0 }));
-		return utils.serviceResponse(true, result, "");
-	} catch (error) {
-		throw error;
-	}
-};
 
-export const GetRevenueVsCost = async (storeId: string, startDateLocal: string, endDateLocal: string) => {
-	try {
-		const startDate = utils.localeDate(startDateLocal);
-		const endDate = utils.localeDate(endDateLocal);
-		const data = await weekRepository.find({
-			where: { store: { id: storeId }, startDate: Between(startDate, endDate) },
-			select: ["startDate", "revenue", "cost"],
-			order: { startDate: "ASC" },
-		});
-		const result = data.map((w) => ({ weekStart: w.startDate, revenue: w.revenue || 0, cost: w.cost || 0 }));
+		const query = weekRepository.createQueryBuilder("week").where("week.storeId = :storeId", { storeId });
+		if (startDate && endDate) {
+			query.andWhere("week.startDate <= :endDate AND week.endDate >= :startDate", { startDate, endDate });
+		}
+
+		query
+			.select(["week.startDate", "week.endDate", "week.budget", "week.cost", "week.hours", "week.revenue"])
+			.orderBy("week.startDate", "ASC");
+
+		const data = utils.parseSafe(await query.getMany());
+
+		const result = data.map((w) => ({
+			startDate: w.startDate,
+			endDate: w.endDate,
+			cost: w.cost,
+			hours: w.hours,
+			revenue: w.revenue || 0,
+		}));
 		return utils.serviceResponse(true, result, "");
 	} catch (error) {
 		throw error;
