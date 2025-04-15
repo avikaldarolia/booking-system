@@ -207,6 +207,8 @@ export const createShift = async (data: {
 		await queryRunner.manager.getRepository(Shift).save(newShift);
 
 		week.cost = Number(week.cost) + cost;
+		week.hours = Number(week.hours) + hours;
+
 		weeklyEmployeeStats.empHours = Number(weeklyEmployeeStats.empHours) + hours;
 		weeklyEmployeeStats.empTotalCost = Number(weeklyEmployeeStats.empTotalCost) + cost;
 
@@ -247,8 +249,9 @@ export const deleteShift = async (id: string) => {
 		weeklyEmployeeStats.empHours = Number(weeklyEmployeeStats.empHours) - Number(shift.hours);
 		weeklyEmployeeStats.empTotalCost = Number(weeklyEmployeeStats.empTotalCost) - Number(shift.cost);
 
-		// Remove emp cost from weekly-stats
+		// Remove emp cost and hours from weekly-stats
 		week.cost = Number(week.cost) - Number(shift.cost);
+		week.hours = Number(week.hours) - Number(shift.hours);
 
 		await weeklyStatsRepository.save(weeklyEmployeeStats);
 		await weekRepository.save(week);

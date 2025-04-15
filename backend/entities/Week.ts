@@ -14,7 +14,7 @@ export class Week extends BaseEntity {
 	@RelationId((week: Week) => week.store)
 	storeId: string;
 
-	@ManyToOne(() => Store, (store) => store.weeklyBudget)
+	@ManyToOne(() => Store, (store) => store.weeks)
 	store: Store;
 
 	@OneToMany(() => WeeklyEmployeeStats, (weeklyEmployeeStats) => weeklyEmployeeStats.week, {

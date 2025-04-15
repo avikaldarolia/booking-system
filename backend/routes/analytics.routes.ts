@@ -10,7 +10,6 @@ import {
 	getRevenuePerShift,
 	getRevenuePerWeek,
 	getTotalRevenue,
-	getRevenueVsCost,
 	getHourlyRateEffectiveness,
 	getAvgReservationDuration,
 	getTopEmployees,
@@ -28,7 +27,6 @@ router.get("/revenue/total", requireStoreId, getTotalRevenue);
 router.get("/revenue/employee", requireStoreId, getRevenuePerEmployee);
 router.get("/revenue/shift", requireStoreId, getRevenuePerShift);
 router.get("/revenue/weekly", requireStoreId, getRevenuePerWeek);
-router.get("/revenue-cost", requireStoreId, getRevenueVsCost);
 router.get("/hourly-rate-effectiveness", requireStoreId, getHourlyRateEffectiveness);
 router.get("/employee-utilization", requireStoreId, getEmployeeUtilization);
 router.get("/hours-worked", requireStoreId, getTotalHoursWorked);

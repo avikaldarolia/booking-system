@@ -10,7 +10,6 @@ import {
 	XAxis,
 	YAxis,
 	Tooltip,
-	Legend,
 	ResponsiveContainer,
 } from "recharts";
 import axios from "axios";
@@ -222,7 +221,7 @@ const Analytics: React.FC = () => {
 						cy="50%"
 						outerRadius={80}
 						label>
-						{data["reservation-status"]?.data?.map((_, index: number) => (
+						{data["reservation-status"]?.data?.map((_: any, index: number) => (
 							<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
 						))}
 					</Pie>

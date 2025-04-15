@@ -7,8 +7,9 @@ import * as utils from "../utils/utils";
  */
 export const getTotalRevenue = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const { storeId } = req.params;
-		const totalRevenue = await AnalyticsService.GetTotalRevenue(storeId!);
+		const storeId = req.storeId!;
+		const { startDate, endDate } = req.query;
+		const totalRevenue = await AnalyticsService.GetTotalRevenue(storeId!, startDate as string, endDate as string);
 		return utils.sendResponse(req, res, totalRevenue.success, totalRevenue.data, totalRevenue.err);
 	} catch (error) {
 		next(error);
@@ -20,7 +21,7 @@ export const getTotalRevenue = utils.asyncMiddleware(async (req: Request, res: R
  */
 export const getRevenuePerEmployee = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const { storeId } = req.params;
+		const storeId = req.storeId!;
 		const { startDate, endDate } = req.query;
 		const employeeRevenue = await AnalyticsService.GetRevenuePerEmployee(
 			storeId,
@@ -38,7 +39,7 @@ export const getRevenuePerEmployee = utils.asyncMiddleware(async (req: Request, 
  */
 export const getRevenuePerShift = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const { storeId } = req.params;
+		const storeId = req.storeId!;
 		const { startDate, endDate } = req.query;
 		const shiftRevenue = await AnalyticsService.GetRevenuePerShift(storeId, startDate as string, endDate as string);
 		return utils.sendResponse(req, res, shiftRevenue.success, shiftRevenue.data, shiftRevenue.err);
@@ -62,26 +63,12 @@ export const getRevenuePerWeek = utils.asyncMiddleware(async (req: Request, res:
 });
 
 /**
- * Revenue vs. Cost
- */
-export const getRevenueVsCost = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
-	try {
-		const { storeId } = req.params;
-		const { startDate, endDate } = req.query;
-		const revenueCost = await AnalyticsService.GetRevenueVsCost(storeId, startDate as string, endDate as string);
-		return utils.sendResponse(req, res, revenueCost.success, revenueCost.data, revenueCost.err);
-	} catch (error) {
-		next(error);
-	}
-});
-
-/**
  * Hourly Rate Effectiveness
  */
 export const getHourlyRateEffectiveness = utils.asyncMiddleware(
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
-			const { storeId } = req.params;
+			const storeId = req.storeId!;
 			const { startDate, endDate } = req.query;
 			const effectiveness = await AnalyticsService.GetHourlyRateEffectiveness(
 				storeId,
