@@ -8,7 +8,7 @@ const reservationRepository = AppDataSource.getRepository(Reservation);
 
 export const getAvailableDates = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { employeeId, storeId } = req.body;
+        const { employeeId, storeId } = req.body.args;
         const dates = await ReservationService.GetAvailableDates(employeeId, storeId);
 
         return utils.sendResponse(req, res, dates.success, dates.data, dates.err);
@@ -19,7 +19,7 @@ export const getAvailableDates = utils.asyncMiddleware(async (req: Request, res:
 
 export const getReservationById = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { id } = req.body;
+        const { id } = req.body.args;
         const reservation = await reservationRepository.findOne({
             where: { id },
             relations: ["employee", "customer"],
@@ -60,7 +60,7 @@ export const createReservation = utils.asyncMiddleware(async (req: Request, res:
 
 export const getAllReservations = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { employeeId, customerId, startDate, endDate, status } = req.body;
+        const { employeeId, customerId, startDate, endDate, status } = req.body.args;
         const user = req.user;
 
         if (!user || !user.role) {
@@ -84,7 +84,7 @@ export const getAllReservations = utils.asyncMiddleware(async (req: Request, res
 
 export const updateReservationStatus = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { id, status } = req.body;
+        const { id, status } = req.body.args;
 
         const reservation = await reservationRepository.findOne({
             where: { id },
@@ -106,7 +106,7 @@ export const updateReservationStatus = utils.asyncMiddleware(async (req: Request
 
 export const cancelReservation = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { id } = req.body;
+        const { id } = req.body.args;
         const reservation = await reservationRepository.findOne({
             where: { id },
             relations: ["employee", "customer"],
@@ -130,7 +130,7 @@ export const cancelReservation = utils.asyncMiddleware(async (req: Request, res:
  */
 export const getAvailableSlots = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { employeeId, date, duration, storeId } = req.body;
+        const { employeeId, date, duration, storeId } = req.body.args;
         const slots = await ReservationService.GetAvailableSlotsOnDate(
             employeeId,
             date,
