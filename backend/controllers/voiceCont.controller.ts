@@ -38,7 +38,7 @@ export const getReservationById = utils.asyncMiddleware(async (req: Request, res
 
 export const createReservation = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { employeeId, name, email, phone, date, startTime, notes, service, storeId } = req.body;
+        const { employeeId, name, email, phone, date, startTime, notes, service, storeId } = req.body.args;
 
         const reservation = await ReservationService.CreateReservation(
             employeeId,
