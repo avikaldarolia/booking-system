@@ -39,21 +39,40 @@ export const getReservationById = utils.asyncMiddleware(async (req: Request, res
 export const createReservation = utils.asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { employeeId, name, email, phone, date, startTime, notes, service, storeId } = req.body.args;
+        
+        // Trim the email to remove any whitespace
+        const cleanEmail = email ? email.trim() : '';
+        
+        // Log the email being passed to the service for debugging
+        console.log("Controller email:", cleanEmail);
+        
+        // Make sure all required parameters are present
+        if (!service || !service.id || !service.duration) {
+            return utils.sendResponse(req, res, false, null, "Invalid service data");
+        }
+        
+        // Make sure storeId is properly set
+        const actualStoreId = storeId || (service && service.storeId);
+        if (!actualStoreId) {
+            return utils.sendResponse(req, res, false, null, "Store ID is required");
+        }
 
         const reservation = await ReservationService.CreateReservation(
             employeeId,
             name,
-            email,
+            cleanEmail, // Use the cleaned email
             phone,
             date,
             startTime,
             service,
-            storeId,
+            actualStoreId, // Use the verified storeId
             notes
         );
 
-        return utils.sendResponse(req, res, reservation.success, reservation.data, reservation.err);
+        return utils.sendResponse(req, res, true, reservation, null);
     } catch (error) {
+        // More detailed error logging
+        console.error("Error creating reservation:", error);
         next(error);
     }
 });
