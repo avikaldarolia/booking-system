@@ -39,7 +39,7 @@ const Header = () => {
 						<div className="relative px-4">
 							<button
 								onClick={toggleDropdown}
-								className="flex flex-col items-center p-2 rounded-full bg-black text-white hover:bg-gray-400 focus:outline-none">
+								className="flex items-center p-2 rounded-full bg-black text-white hover:bg-gray-400 focus:outline-none">
 								<div className="h-8 w-8 rounded-full flex items-center justify-center">
 									<User className="h-5 w-5" />
 								</div>
