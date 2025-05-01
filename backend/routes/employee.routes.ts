@@ -15,7 +15,7 @@ router.get("/", getAllEmployees);
 router.get("/:id", getEmployeeById);
 
 // Protected routes
-// router.use(authenticate);
+router.use(authenticate);
 
 // router.get("/:id", getEmployeeById);
 router.post("/", authorize(["manager"]), createEmployee);
