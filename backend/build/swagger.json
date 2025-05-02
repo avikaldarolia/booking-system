@@ -1,0 +1,518 @@
+{
+	"openapi": "3.0.0",
+	"components": {
+		"examples": {},
+		"headers": {},
+		"parameters": {},
+		"requestBodies": {},
+		"responses": {},
+		"schemas": {
+			"EmployeeType": {
+				"enum": [
+					"manager",
+					"associate",
+					"part_time"
+				],
+				"type": "string"
+			},
+			"EmployeeResponse": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"email": {
+						"type": "string"
+					},
+					"type": {
+						"$ref": "#/components/schemas/EmployeeType"
+					},
+					"maxHours": {
+						"type": "number",
+						"format": "double"
+					},
+					"hourlyRate": {
+						"type": "number",
+						"format": "double"
+					},
+					"specialties": {
+						"type": "string"
+					},
+					"bio": {
+						"type": "string"
+					},
+					"imageUrl": {
+						"type": "string"
+					},
+					"storeId": {
+						"type": "string"
+					},
+					"createdAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updatedAt": {
+						"type": "string",
+						"format": "date-time"
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"email",
+					"type",
+					"maxHours",
+					"hourlyRate",
+					"storeId",
+					"createdAt",
+					"updatedAt"
+				],
+				"type": "object",
+				"additionalProperties": true
+			},
+			"ApiResponse_EmployeeResponse-Array_": {
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/EmployeeResponse"
+						},
+						"type": "array"
+					},
+					"error": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success"
+				],
+				"type": "object",
+				"additionalProperties": true
+			},
+			"ApiResponse_EmployeeResponse_": {
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"data": {
+						"$ref": "#/components/schemas/EmployeeResponse"
+					},
+					"error": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success"
+				],
+				"type": "object",
+				"additionalProperties": true
+			},
+			"EmployeeCreationParams": {
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "Employee's full name",
+						"example": "John Doe"
+					},
+					"email": {
+						"type": "string",
+						"description": "Employee's email address (must be unique)",
+						"example": "john.doe@example.com"
+					},
+					"password": {
+						"type": "string",
+						"description": "Employee's password (will be hashed before storage)",
+						"example": "SecurePassword123"
+					},
+					"type": {
+						"$ref": "#/components/schemas/EmployeeType",
+						"description": "Employee type",
+						"example": "associate"
+					},
+					"maxHours": {
+						"type": "number",
+						"format": "double",
+						"description": "Maximum hours per week the employee can work",
+						"example": 40
+					},
+					"hourlyRate": {
+						"type": "number",
+						"format": "double",
+						"description": "Hourly rate for the employee",
+						"example": 15.5
+					},
+					"specialties": {
+						"type": "string",
+						"description": "Employee's specialties (optional)",
+						"example": "Hair styling, Coloring"
+					},
+					"bio": {
+						"type": "string",
+						"description": "Employee's biography (optional)",
+						"example": "5 years of experience in high-end salons."
+					},
+					"imageUrl": {
+						"type": "string",
+						"description": "URL to employee's profile image (optional)",
+						"example": "https://example.com/profiles/john-doe.jpg"
+					},
+					"storeId": {
+						"type": "string",
+						"description": "ID of the store this employee belongs to",
+						"example": "123e4567-e89b-12d3-a456-426614174000"
+					}
+				},
+				"required": [
+					"name",
+					"email",
+					"password",
+					"maxHours",
+					"hourlyRate",
+					"storeId"
+				],
+				"type": "object",
+				"additionalProperties": true
+			},
+			"EmployeeUpdateParams": {
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "Employee's full name",
+						"example": "John Doe"
+					},
+					"email": {
+						"type": "string",
+						"description": "Employee's email address",
+						"example": "john.doe@example.com"
+					},
+					"password": {
+						"type": "string",
+						"description": "Employee's password (will be hashed before storage)",
+						"example": "NewSecurePassword123"
+					},
+					"type": {
+						"$ref": "#/components/schemas/EmployeeType",
+						"description": "Employee type",
+						"example": "manager"
+					},
+					"maxHours": {
+						"type": "number",
+						"format": "double",
+						"description": "Maximum hours per week the employee can work",
+						"example": 35
+					},
+					"hourlyRate": {
+						"type": "number",
+						"format": "double",
+						"description": "Hourly rate for the employee",
+						"example": 18.75
+					},
+					"specialties": {
+						"type": "string",
+						"description": "Employee's specialties",
+						"example": "Hair styling, Coloring, Extensions"
+					},
+					"bio": {
+						"type": "string",
+						"description": "Employee's biography",
+						"example": "7 years of experience in high-end salons."
+					},
+					"imageUrl": {
+						"type": "string",
+						"description": "URL to employee's profile image",
+						"example": "https://example.com/profiles/john-doe-updated.jpg"
+					},
+					"storeId": {
+						"type": "string",
+						"description": "ID of the store this employee belongs to",
+						"example": "123e4567-e89b-12d3-a456-426614174000"
+					}
+				},
+				"type": "object",
+				"additionalProperties": true
+			}
+		},
+		"securitySchemes": {
+			"jwt": {
+				"type": "http",
+				"scheme": "bearer",
+				"bearerFormat": "JWT"
+			}
+		}
+	},
+	"info": {
+		"title": "booking-system",
+		"version": "1.0.0",
+		"description": "Backend for Booking system",
+		"license": {
+			"name": "ISC"
+		},
+		"contact": {}
+	},
+	"paths": {
+		"/employees": {
+			"get": {
+				"operationId": "GetAllEmployees",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_EmployeeResponse-Array_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get all employees",
+				"tags": [
+					"Employees"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"description": "Optional store ID to filter employees",
+						"in": "query",
+						"name": "storeId",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"post": {
+				"operationId": "CreateEmployee",
+				"responses": {
+					"201": {
+						"description": "Created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_EmployeeResponse_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Create a new employee",
+				"tags": [
+					"Employees"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"description": "Employee data",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/EmployeeCreationParams",
+								"description": "Employee data"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/employees/{id}": {
+			"get": {
+				"operationId": "GetEmployeeById",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_EmployeeResponse_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get employee by ID",
+				"tags": [
+					"Employees"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"description": "Employee ID",
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Optional store ID for validation",
+						"in": "query",
+						"name": "storeId",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"put": {
+				"operationId": "UpdateEmployee",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/EmployeeResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Update an employee",
+				"tags": [
+					"Employees"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"description": "Employee ID",
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"description": "Updated employee data",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/EmployeeUpdateParams",
+								"description": "Updated employee data"
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "DeleteEmployee",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"message": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"message"
+									],
+									"type": "object"
+								}
+							}
+						}
+					}
+				},
+				"description": "Delete an employee",
+				"tags": [
+					"Employees"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"description": "Employee ID",
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/employees/reset-hours/{storeId}": {
+			"put": {
+				"operationId": "ResetEmployeeHours",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"message": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"message"
+									],
+									"type": "object"
+								}
+							}
+						}
+					}
+				},
+				"description": "Reset all employee hours for a specific store",
+				"tags": [
+					"Employees"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"description": "Store ID",
+						"in": "path",
+						"name": "storeId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		}
+	},
+	"servers": [
+		{
+			"url": "/api"
+		}
+	]
+}

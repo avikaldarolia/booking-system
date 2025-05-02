@@ -69,6 +69,17 @@ const ManagerSidebar = () => {
 				</NavLink>
 
 				<NavLink
+					to="/manager-portal/analytics"
+					className={({ isActive }) =>
+						`flex items-center px-4 py-2 mt-2 rounded-md ${
+							isActive ? "bg-white text-black" : "text-gray-300 hover:bg-gray-700"
+						}`
+					}>
+					<BarChart2 className="h-5 w-5 mr-3" />
+					Analytics
+				</NavLink>
+
+				<NavLink
 					to="/manager-portal/settings"
 					className={({ isActive }) =>
 						`flex items-center px-4 py-2 mt-2 rounded-md ${

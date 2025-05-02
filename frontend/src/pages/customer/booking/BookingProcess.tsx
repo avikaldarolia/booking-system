@@ -8,23 +8,22 @@ import { Service, Employee, Customer } from "../../../types";
 import ServicesList from "./ServiceList";
 
 interface BookingProcessProps {
-	services: Service[];
 	onBookingSuccess?: () => void;
 }
 
-const BookingProcess = ({ services, onBookingSuccess }: BookingProcessProps) => {
+const BookingProcess = ({ onBookingSuccess }: BookingProcessProps) => {
 	const [step, setStep] = useState(1);
+	const [services, setServices] = useState<Service[] | null>(null);
 	const [employees, setEmployees] = useState<Employee[]>([]);
 	const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
 	const [selectedService, setSelectedService] = useState<Service | null>(null);
 	const [loading, setLoading] = useState(true);
 
-	const storeId = import.meta.env.VITE_STORE_ID;
-
 	useEffect(() => {
 		const fetchEmployees = async () => {
 			try {
-				const response = await axios.get(`employees?storeId=${storeId}`);
+				setLoading(true);
+				const response = await axios.get(`employees`);
 				if (response.data.success) {
 					setEmployees(response.data.data);
 				}
@@ -34,8 +33,23 @@ const BookingProcess = ({ services, onBookingSuccess }: BookingProcessProps) => 
 				setLoading(false);
 			}
 		};
+		const fetchServices = async () => {
+			try {
+				setLoading(true);
+				const response = await axios.get(`services`);
+				if (response.data.success) {
+					setServices(response.data.data);
+				}
+				setLoading(false);
+			} catch (error) {
+				console.error("Error fetching employees:", error);
+				setLoading(false);
+			}
+		};
+
 		fetchEmployees();
-	}, [storeId]);
+		fetchServices();
+	}, []);
 
 	const handleServiceSelect = (service: Service) => {
 		setSelectedService(service);
@@ -59,19 +73,20 @@ const BookingProcess = ({ services, onBookingSuccess }: BookingProcessProps) => 
 	};
 
 	const handleBookAppointment = async (selectedSlot: string, notes: string, selectedDate: Date, customer: Customer) => {
-		if (!selectedEmployee || !selectedSlot || !selectedDate) return;
+		if (!selectedEmployee || !selectedSlot || !selectedDate || !selectedService) return;
 
 		try {
 			await axios.post("reservations", {
 				employeeId: selectedEmployee.id,
 				date: format(selectedDate, "yyyy-MM-dd"),
 				startTime: selectedSlot,
-				duration: selectedService?.duration.split(" ")[0],
 				email: customer.email,
 				phone: customer.phoneNumber,
 				name: customer.name || "",
 				notes,
+				service: selectedService,
 			});
+
 			alert("Appointment booked successfully!");
 			setStep(1);
 			setSelectedEmployee(null);
@@ -90,7 +105,7 @@ const BookingProcess = ({ services, onBookingSuccess }: BookingProcessProps) => 
 	return (
 		<main className="flex-1 py-3 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
 			{/* Step 1: Service Selection */}
-			{step === 1 && <ServicesList services={services} onSelectService={handleServiceSelect} />}
+			{step === 1 && <ServicesList services={services!} onSelectService={handleServiceSelect} />}
 
 			{/* Step 2: Employee Selection */}
 			{step === 2 && selectedService && (
@@ -109,7 +124,7 @@ const BookingProcess = ({ services, onBookingSuccess }: BookingProcessProps) => 
 				<div className="p-6 transition-all duration-300">
 					<BookingCalendar
 						selectedEmployee={selectedEmployee}
-						selectedDuration={parseInt(selectedService.duration.split(" ")[0])}
+						selectedDuration={parseInt(selectedService.duration)}
 						onBack={handleBack}
 						onBookAppointment={handleBookAppointment}
 					/>

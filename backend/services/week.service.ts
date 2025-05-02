@@ -3,9 +3,28 @@ import { AppDataSource } from "../data-source";
 import { Store } from "../entities/Store";
 import { Week } from "../entities/Week";
 import * as utils from "../utils/utils";
-import { Between } from "typeorm";
+import { Between, LessThanOrEqual, MoreThanOrEqual } from "typeorm";
 
 const weekRepository = AppDataSource.getRepository(Week);
+
+export const FindByDate = async (date: string, storeId: string) => {
+	try {
+		const targetDate = utils.localeDate(date);
+		const week = utils.parseSafe(
+			await weekRepository.findOne({
+				where: {
+					startDate: LessThanOrEqual(targetDate),
+					endDate: MoreThanOrEqual(targetDate),
+					store: { id: storeId },
+				},
+			})
+		);
+
+		return utils.serviceResponse(true, week, "");
+	} catch (error) {
+		throw error;
+	}
+};
 
 export const GetWeekDetails = async (startDate: string, endDate: string, storeId: string) => {
 	try {

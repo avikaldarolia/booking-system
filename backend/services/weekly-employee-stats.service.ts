@@ -4,6 +4,30 @@ import * as utils from "../utils/utils";
 
 const weeklyEmployeeStatsRepository = AppDataSource.getRepository(WeeklyEmployeeStats);
 
+export const FindByEmployeeAndWeek = async (employeeId: string, weekId: string, storeId: string) => {
+	try {
+		if (!weekId) {
+			throw new Error("Week id is required.");
+		}
+		if (!employeeId) {
+			throw new Error("Employee id is required.");
+		}
+		const stats = utils.parseSafe(
+			await weeklyEmployeeStatsRepository.findOne({
+				where: {
+					week: { id: weekId },
+					employee: { id: employeeId },
+					store: { id: storeId },
+				},
+			})
+		);
+
+		return utils.serviceResponse(true, stats, "");
+	} catch (error) {
+		throw error;
+	}
+};
+
 export const GetWeeklyStats = async (storeId: string, weekId: string) => {
 	try {
 		let stats: WeeklyEmployeeStats;

@@ -12,7 +12,7 @@ const ServicesList: React.FC<ServicesListProps> = ({ services, onSelectService }
 		<div className="py-12 px-6">
 			<h2 className="text-4xl font-bold text-center text-gray-900 mb-12">Our Services</h2>
 			<div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-				{services.map((service) => (
+				{services?.map((service) => (
 					<div
 						key={service.id}
 						className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-2xl transition-transform transform hover:-translate-y-1 cursor-pointer border border-gray-200 flex flex-col"
@@ -26,7 +26,7 @@ const ServicesList: React.FC<ServicesListProps> = ({ services, onSelectService }
 
 						<div className="mt-auto flex items-center h-fit justify-between text-sm font-medium border-t border-gray-200">
 							<span className="text-blue-600 text-lg font-bold">${service.price}</span>
-							<span className="text-gray-500">{service.duration}</span>
+							<span className="text-gray-500">{service.duration} mins</span>
 						</div>
 					</div>
 				))}

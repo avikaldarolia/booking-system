@@ -1,7 +1,6 @@
 import Footer from "../../../components/Footer";
 import HeroSection from "./HeroSection";
 import BookingProcess from "./BookingProcess";
-import Services from "../../../data/Services";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -24,7 +23,7 @@ const LandingPage = () => {
 			{!isBookingActive && <HeroSection onBookNow={() => setIsBookingActive(true)} />}
 
 			{/* Booking Process */}
-			{isBookingActive && <BookingProcess services={Services} />}
+			{isBookingActive && <BookingProcess />}
 
 			{/* Footer */}
 			<Footer />

@@ -29,21 +29,21 @@ const Header = () => {
 					</div>
 
 					{/* Notifications & User Dropdown */}
-					<div className="flex items-center space-x-4">
+					<div className="flex items-center justify-between px-4">
 						{/* Notification Bell */}
 						<button className="p-2 rounded-md text-black hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
 							<Bell className="h-6 w-6" />
 						</button>
 
 						{/* User Profile */}
-						<div className="relative px-4">
+						<div className="relative">
 							<button
 								onClick={toggleDropdown}
-								className="flex items-center space-x-2 p-2 rounded-full bg-black text-white hover:bg-gray-400 focus:outline-none">
+								className="flex items-center p-2 rounded-full bg-black text-white hover:bg-gray-400 focus:outline-none">
 								<div className="h-8 w-8 rounded-full flex items-center justify-center">
-									<User className="h-5 w-5" />
+									<User className="h-6 w-6" />
 								</div>
-								<span className="text-sm font-medium">{user?.name || "Guest"}</span>
+								<span className="text-sm font-medium px-2">{user?.name || "Guest"}</span>
 							</button>
 
 							{/* Dropdown Menu */}

@@ -28,6 +28,7 @@ export const login = utils.asyncMiddleware(async (req: Request, res: Response) =
 		});
 
 		if (!user) {
+			console.log(password,email)
 			return res.status(401).json({ message: "Invalid credentials" });
 		}
 

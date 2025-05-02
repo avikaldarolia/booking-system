@@ -20,6 +20,7 @@ import Schedule from "./pages/manager/Schedule";
 import WeeklyStats from "./pages/manager/WeeklyStats";
 import Reservations from "./pages/manager/Reservations";
 import Settings from "./pages/manager/Settings";
+// import Analytics from "./pages/manager/Analytics";
 
 // Employee Pages
 import EmployeePortal from "./pages/employee-portal/EmployeePortal";
@@ -32,7 +33,6 @@ import CustomerPortal from "./pages/customer/CustomerPortal";
 import { User } from "./types";
 import Spinner from "./components/Spinner";
 import BookingProcess from "./pages/customer/booking/BookingProcess";
-import Services from "./data/Services";
 import CustomerAppointments from "./pages/customer/CustomerAppointments";
 
 interface PrivateRouteProps {
@@ -83,6 +83,7 @@ function AppRoutes() {
 								<Route path="weekly-stats" element={<WeeklyStats />} />
 								<Route path="reservations" element={<Reservations />} />
 								<Route path="settings" element={<Settings />} />
+								{/* <Route path="analytics" element={<Analytics />} /> */}
 								<Route path="*" element={<Navigate to="/manager-portal/" replace />} />
 							</Routes>
 						</DashboardLayout>
@@ -116,7 +117,7 @@ function AppRoutes() {
 						<DashboardLayout>
 							<Routes>
 								<Route path="" element={<CustomerPortal />} />
-								<Route path="/book" element={<BookingProcess services={Services} />} />
+								<Route path="/book" element={<BookingProcess />} />
 								<Route path="/appointments" element={<CustomerAppointments />} />
 								<Route path="*" element={<Navigate to="/customer-portal/" replace />} />
 							</Routes>
